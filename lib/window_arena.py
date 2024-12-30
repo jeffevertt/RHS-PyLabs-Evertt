@@ -11,7 +11,7 @@ import random
 import asyncio
 
 class WindowArenaConfig(enum.Flag):
-    TANKS_TUTORIAL = 0
+    TANKS_TUTORIAL = enum.auto()
     TANKS_DEFAULT = enum.auto()
     TANKS_ADVANCED = enum.auto()
     TANKS_INTERACTIVE = enum.auto()
@@ -43,13 +43,13 @@ class WindowArena(Window):
         self.resetSimulation()
     
     def isTanks(self):
-        if self.gameConfig & WindowArenaConfig.TANKS_DEFAULT or self.gameConfig & WindowArenaConfig.TANKS_TUTORIAL or self.gameConfig & WindowArenaConfig.TANKS_ADVANCED or self.gameConfig & WindowArenaConfig.TANKS_INTERACTIVE:
+        if (self.gameConfig & WindowArenaConfig.TANKS_TUTORIAL) or (self.gameConfig & WindowArenaConfig.TANKS_DEFAULT) or (self.gameConfig & WindowArenaConfig.TANKS_ADVANCED) or (self.gameConfig & WindowArenaConfig.TANKS_INTERACTIVE):
             return True
         return False
     def isTanks_TutorialMode(self):
         return True if self.gameConfig & WindowArenaConfig.TANKS_TUTORIAL else False
     def isTanks_AdvancedMode(self):
-        return True if self.gameConfig & WindowArenaConfig.TANKS_ADVANCED or self.gameConfig & WindowArenaConfig.TANKS_INTERACTIVE else False
+        return True if ((self.gameConfig & WindowArenaConfig.TANKS_ADVANCED) or (self.gameConfig & WindowArenaConfig.TANKS_INTERACTIVE)) else False
     def isTanks_InteractiveMode(self):
         return True if self.gameConfig & WindowArenaConfig.TANKS_INTERACTIVE else False
     def isSpaceBattle(self):
