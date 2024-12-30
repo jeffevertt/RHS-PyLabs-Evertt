@@ -319,7 +319,19 @@ class WindowArena(Window):
                     ammo.timeTillDeath = max(ammo.timeTillDeath, 0.0001)
                     
             # check for hitting ships
-            #TODO(SpaceBattle)
+            ships = self.sim.objectsOfType(Ship)
+            for ship in ships:
+                # note: don't let someone hit themselves
+                if ammo.playerIdx != ship.playerIdx and intersectCircles(ship.pos, ship.SHIP_SHELL_RADIUS/2, ammo.pos, ammo.radius):
+                    # award points
+                    self.awardPoints(25, ammo.playerIdx)
+                    log("(hit ship: score +25)")
+                    
+                    # kick the ship back (if you can)
+                    ship.kickBackShip(unit(ship.pos - ammo.pos))
+                    
+                    # that's it for the ammo
+                    ammo.timeTillDeath = max(ammo.timeTillDeath, 0.0001)
 
     def calcMinDstFromObjectOfType(self, pos, objType):
         minDst = 10000000

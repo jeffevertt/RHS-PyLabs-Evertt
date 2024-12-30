@@ -64,6 +64,8 @@ class Ship(WinObj):
         
         self.shipMoveSpeed = Ship.DEFAULT_MOVE_SPEED
         self.shipTurnSpeed = Ship.DEFAULT_TURN_SPEED
+        
+        self.timeSinceLastCmd = 1000.0
   
         self.window.sim.onCreated(self)
         self.createGfx()
@@ -111,6 +113,8 @@ class Ship(WinObj):
             self.window.canvas.coords(self.gfxBody, calcRotatedTrianglePtsInPixels(self.pos, Ship.SHIP_BODY_SIZE_XN, Ship.SHIP_BODY_SIZE_XP, -Ship.SHIP_BODY_SIZE_Y, Ship.SHIP_BODY_SIZE_Y, angle, self.window))
             self.window.canvas.tag_raise(self.gfxBody)
         if self.gfxBodyInner != None:
+            colorInner = colorHexLerp( colorNamedToHex('red'), colorNamedToHex('darkgray'), min(self.timeSinceLastCmd * 2, 1) )
+            self.window.canvas.itemconfig(self.gfxBodyInner, fill = colorInner)
             self.window.canvas.coords(self.gfxBodyInner, calcRotatedTrianglePtsInPixels(self.pos, Ship.SHIP_BODY_SIZE_XN * Ship.SHIP_BODY_INNER_SCL, Ship.SHIP_BODY_SIZE_XP * Ship.SHIP_BODY_INNER_SCL, -Ship.SHIP_BODY_SIZE_Y * Ship.SHIP_BODY_INNER_SCL, Ship.SHIP_BODY_SIZE_Y * Ship.SHIP_BODY_INNER_SCL, angle, self.window))
             self.window.canvas.tag_raise(self.gfxBodyInner)
         if self.gfxThrustLeft != None:
@@ -165,6 +169,7 @@ class Ship(WinObj):
             self.queuedCommands.insert(0, command)
         else:
             self.queuedCommands.append(command)
+        self.timeSinceLastCmd = 0
 
     def finishActiveCommand(self):
         # done with this one
@@ -193,7 +198,7 @@ class Ship(WinObj):
         self.activeCommand = nextCommand
         if not needToTurnFirst:
             self.queuedCommands.pop(0)
-            
+        
         # log it
         log(("    " if needToTurnFirst else "--> ") + self.activeCommand.description())
         
@@ -230,7 +235,7 @@ class Ship(WinObj):
                 self.pos += deltaVec * 0.1
                 self.activeCommand.progress = 1
             
-            # Keep in bounds...
+            # keep in bounds
             if self.pos[0] <= Ship.SHIP_SHELL_RADIUS/2:
                 self.pos += v2_right() * 0.1
                 self.activeCommand.progress = 1
@@ -238,13 +243,13 @@ class Ship(WinObj):
                 self.pos += v2_up() * 0.1
                 self.activeCommand.progress = 1
             if self.pos[0] >= self.window.maxCoordinateX() - Ship.SHIP_SHELL_RADIUS/2:
-                self.pos += v2_left() * 0.1
+                self.pos += v2_left() * 0.3
                 self.activeCommand.progress = 1
             if self.pos[1] >= self.window.maxCoordinateY() - Ship.SHIP_SHELL_RADIUS/2:
-                self.pos += v2_down() * 0.1
+                self.pos += v2_down() * 0.3
                 self.activeCommand.progress = 1
             
-            # And...check for done...
+            # and check for done
             if self.activeCommand.progress == 1:
                 self.vel = v2_zero()
                 self.updateThrusterGfx(False, False)
@@ -275,6 +280,7 @@ class Ship(WinObj):
             elif self.ammo <= 0:
                 log("    (shooting without any ammo)")
                 self.finishActiveCommand()
+        self.timeSinceLastCmd += deltaTime
 
     def hasCommand(self):
         return self.activeCommand != None or len(self.queuedCommands) > 0

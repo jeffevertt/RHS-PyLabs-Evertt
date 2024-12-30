@@ -50,6 +50,8 @@ class Tank(WinObj):
         
         self.tankMoveSpeed = Tank.DEFAULT_MOVE_SPEED
         self.tankTurnSpeed = Tank.DEFAULT_TURN_SPEED
+        
+        self.timeSinceLastCmd = 1000.0
   
         self.window.sim.onCreated(self)
         self.createGfx()
@@ -63,7 +65,9 @@ class Tank(WinObj):
         
     def createGfx(self):
         isSecondTank = self.window.sim.countObjectsOfType(Tank) > 1
-        self.gfxBody = self.window.canvas.create_polygon([ (0, 0), (0, 0), (0, 0), (0, 0) ], fill = 'lightblue' if isSecondTank else 'lightgreen', outline = 'black', width = 2)
+        self.bodyColor1 = 'lightblue' if isSecondTank else 'lightgreen'
+        self.bodyColor2 = 'darkblue' if isSecondTank else 'darkgreen'
+        self.gfxBody = self.window.canvas.create_polygon([ (0, 0), (0, 0), (0, 0), (0, 0) ], fill = self.bodyColor1, outline = 'black', width = 2)
         self.gfxTreadLeft = self.window.canvas.create_polygon([ (0, 0), (0, 0), (0, 0), (0, 0) ], fill = 'darkgray', outline = 'black', width = 2)
         self.gfxTreadRight = self.window.canvas.create_polygon([ (0, 0), (0, 0), (0, 0), (0, 0) ], fill = 'darkgray', outline = 'black', width = 2)
         self.gfxTurret = self.window.canvas.create_polygon([ (0, 0), (0, 0), (0, 0), (0, 0) ], fill = 'blue' if isSecondTank else 'green', outline = 'black', width = 2)
@@ -84,6 +88,8 @@ class Tank(WinObj):
     def updateGfx(self):
         angle = angleDeg(self.dir)
         if self.gfxBody != None:
+            colorInner = colorHexLerp( colorNamedToHex(self.bodyColor2), colorNamedToHex(self.bodyColor1), min(0.5 + self.timeSinceLastCmd * 1, 1) )
+            self.window.canvas.itemconfig(self.gfxBody, fill = colorInner)
             self.window.canvas.coords(self.gfxBody, calcRotatedRectanglePtsInPixels(self.pos, v2(Tank.TANK_BODY_SIZE/2, Tank.TANK_BODY_SIZE/2), v2_zero(), angle, self.window))
             self.window.canvas.tag_raise(self.gfxBody)
         if self.gfxTreadLeft != None:
@@ -136,6 +142,7 @@ class Tank(WinObj):
             self.queuedCommands.insert(0, command)
         else:
             self.queuedCommands.append(command)
+        self.timeSinceLastCmd = 0
 
     def finishActiveCommand(self):
         # done with this one
@@ -157,7 +164,9 @@ class Tank(WinObj):
         self.activeCommand = nextCommand
         if not needToTurnFirst:
             self.queuedCommands.pop(0)
-            log(("    " if needToTurnFirst else "--> ") + self.activeCommand.description() + ": dir=" + str(self.activeCommand.dir))
+        
+        # log it
+        log(("    " if needToTurnFirst else "--> ") + self.activeCommand.description() + ": dir=" + str(self.activeCommand.dir))
         
         # setup next new command (save off starting information)...
         self.activeCommand.startPos = self.pos
@@ -190,7 +199,7 @@ class Tank(WinObj):
                 self.pos += deltaVec * 0.1
                 self.activeCommand.progress = 1
             
-            # Keep in bounds...
+            # keep in bounds
             if self.pos[0] <= Tank.TANK_BODY_SIZE/2:
                 self.pos += v2_right() * 0.1
                 self.activeCommand.progress = 1
@@ -198,13 +207,13 @@ class Tank(WinObj):
                 self.pos += v2_up() * 0.1
                 self.activeCommand.progress = 1
             if self.pos[0] >= self.window.maxCoordinateX() - Tank.TANK_BODY_SIZE/2:
-                self.pos += v2_left() * 0.1
+                self.pos += v2_left() * 0.3
                 self.activeCommand.progress = 1
             if self.pos[1] >= self.window.maxCoordinateY() - Tank.TANK_BODY_SIZE/2:
-                self.pos += v2_down() * 0.1
+                self.pos += v2_down() * 0.3
                 self.activeCommand.progress = 1
             
-            # And...check for done...
+            # and check for done
             if self.activeCommand.progress == 1:
                 self.finishActiveCommand()
         elif isinstance(self.activeCommand, TankCmd_Turn):
@@ -227,6 +236,7 @@ class Tank(WinObj):
                 Ammo(self.window, self.playerIdx, self.ammoSpawnLocation(), self.dir, self.ammoMaxRange)
                 self.timeLastShot = time.time()
                 self.finishActiveCommand()
+        self.timeSinceLastCmd += deltaTime
 
     def hasCommand(self):
         return self.activeCommand != None or len(self.queuedCommands) > 0

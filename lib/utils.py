@@ -1,4 +1,5 @@
 import numpy as np
+from webcolors import name_to_hex
 import math
 
 def v2(x, y):
@@ -127,6 +128,23 @@ def rotateVec2(v, angleDeg):
     cos = math.cos(angle)
     sin = math.sin(angle)
     return v2(v[0] * cos - v[1] * sin, v[0] * sin + v[1] * cos)
+
+def colorNamedToHex(colorNamed):
+    return name_to_hex(colorNamed)
+def colorHexToRgb(colorHex):
+    colorHex = colorHex.lstrip('#')
+    return tuple(int(colorHex[i:i+2], 16) for i in (0, 2, 4))
+def colorRgbToHex(colorRGB):
+    return "#%02x%02x%02x" % colorRGB
+def colorRgbToHex(r, g, b):
+    return ("#%02x" % r) + ("%02x" % g) + ("%02x" % b)
+def colorHexLerp(color1, color2, t):
+    r1, g1, b1 = colorHexToRgb(color1)
+    r2, g2, b2 = colorHexToRgb(color2)
+    r = int(r1 + (r2 - r1) * t)
+    g = int(g1 + (g2 - g1) * t)
+    b = int(b1 + (b2 - b1) * t)
+    return colorRgbToHex(r, g, b)
 
 # intersection/Distances (returns null if no intersection, vec2 with intersection otherwise)...
 def distancePointToLine(point, linePoint, lineDirUnit):
