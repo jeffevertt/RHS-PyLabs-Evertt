@@ -174,7 +174,7 @@ class Tank(WinObj):
             self.queuedCommands.pop(0)
         
         # log it
-        log(("    " if needToTurnFirst else "--> ") + self.activeCommand.description() + ": dir=" + str(self.activeCommand.dir))
+        log(("    " if needToTurnFirst else "--> ") + self.activeCommand.description() + ": dir=" + f"({self.activeCommand.dir[0]:.2f}, {self.activeCommand.dir[1]:.2f})")
         
         # setup next new command (save off starting information)...
         self.activeCommand.startPos = self.pos

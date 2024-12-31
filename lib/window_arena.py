@@ -103,10 +103,7 @@ class WindowArena(Window):
                 else:
                     # otherwise move there
                     delta = mousePos - tank.pos
-                    if abs(delta[0]) > 0.25:
-                        self.interactiveExecCmd( tank, TankCmd_Move(v2(delta[0], 0)) )
-                    if abs(delta[1]) > 0.25:
-                        self.interactiveExecCmd( tank, TankCmd_Move(v2(0, delta[1])) )
+                    self.interactiveExecCmd( tank, TankCmd_Move(delta) )
             else:
                 log(" *** click ignored, tank is busy")
     def interactiveExecCmd(self, tank, tankCmd):
@@ -117,7 +114,13 @@ class WindowArena(Window):
         self.interactExecCmd(tankCmd, self.levelTime, tank, powerUps, targets)
         
         # tell the tank about it
-        tank.queueCommand( tankCmd )
+        if isinstance(tankCmd, TankCmd_Move):
+            if abs(tankCmd.dir[0]) > 0.25:
+                tank.queueCommand( TankCmd_Move(v2(tankCmd.dir[0], 0)) )
+            if abs(tankCmd.dir[1]) > 0.25:
+                tank.queueCommand( TankCmd_Move(v2(0, tankCmd.dir[1])) )
+        else:
+            tank.queueCommand( tankCmd )
     def getTargetAtPos(self, pos, minDst = 0.1):
         targets = self.sim.objectsOfType(Target)
         for target in targets:

@@ -111,14 +111,14 @@ class PowerUp(WinObj):
             # check for tanks collecting us...
             tanks = self.window.sim.objectsOfType(Tank)
             for tank in tanks:
-                if intersectCirclePt(self.pos, self.HALFDIMS, tank.pos):
+                if intersectCirclePt(self.pos, self.HALFDIMS * 2, tank.pos):
                     # react to it & that's it for us
                     self.onCollected(tank)
                     self.timeTillDeath = max(self.timeTillDeath, 0.0001)
             # check for ships collecting us...
             ships = self.window.sim.objectsOfType(Ship)
             for ship in ships:
-                if intersectCirclePt(self.pos, self.HALFDIMS, ship.pos):
+                if intersectCirclePt(self.pos, self.HALFDIMS * 2, ship.pos):
                     # react to it & that's it for us
                     self.onCollected(ship)
                     self.timeTillDeath = max(self.timeTillDeath, 0.0001)
