@@ -146,6 +146,11 @@ def colorHexLerp(color1, color2, t):
     b = int(b1 + (b2 - b1) * t)
     return colorRgbToHex(r, g, b)
 
+def appendElements(toBeAppendedTo, elementsToAppend):
+    for el in elementsToAppend:
+        toBeAppendedTo.append(el)
+    return toBeAppendedTo
+
 # intersection/Distances (returns null if no intersection, vec2 with intersection otherwise)...
 def distancePointToLine(point, linePoint, lineDirUnit):
     v = point - linePoint

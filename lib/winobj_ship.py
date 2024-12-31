@@ -222,35 +222,42 @@ class Ship(WinObj):
             moveTravelTime = moveDst / self.shipMoveSpeed
             moveVec = self.dir * moveDst
             
+            # check for invalid move
+            skipThisCmd = False
+            if abs(moveDst) < 0.001:
+                log("INVALID THRUST: Zero distance")
+                skipThisCmd = True
+            
             # update the active command
-            self.activeCommand.progress = min(self.activeCommand.progress + deltaTime / moveTravelTime, 1)
-            self.pos = self.activeCommand.startPos + moveVec * self.activeCommand.progress
-            self.updateThrusterGfx(True, True)
-            self.vel = self.dir * (moveDst / moveTravelTime)
-            
-            # check for ship overlap
-            otherShip = self.window.getOtherShip(self)
-            if otherShip != None and intersectCircles(self.pos, Ship.SHIP_SHELL_RADIUS/2, otherShip.pos, Ship.SHIP_SHELL_RADIUS/2):
-                deltaVec = unit(self.pos - otherShip.pos)
-                self.pos += deltaVec * 0.1
-                self.activeCommand.progress = 1
-            
-            # keep in bounds
-            if self.pos[0] <= Ship.SHIP_SHELL_RADIUS/2:
-                self.pos += v2_right() * 0.1
-                self.activeCommand.progress = 1
-            if self.pos[1] <= Ship.SHIP_SHELL_RADIUS/2:
-                self.pos += v2_up() * 0.1
-                self.activeCommand.progress = 1
-            if self.pos[0] >= self.window.maxCoordinateX() - Ship.SHIP_SHELL_RADIUS/2:
-                self.pos += v2_left() * 0.3
-                self.activeCommand.progress = 1
-            if self.pos[1] >= self.window.maxCoordinateY() - Ship.SHIP_SHELL_RADIUS/2:
-                self.pos += v2_down() * 0.3
-                self.activeCommand.progress = 1
+            if not skipThisCmd:
+                self.activeCommand.progress = min(self.activeCommand.progress + deltaTime / moveTravelTime, 1)
+                self.pos = self.activeCommand.startPos + moveVec * self.activeCommand.progress
+                self.updateThrusterGfx(True, True)
+                self.vel = self.dir * (moveDst / moveTravelTime)
+                
+                # check for ship overlap
+                otherShip = self.window.getOtherShip(self)
+                if otherShip != None and intersectCircles(self.pos, Ship.SHIP_SHELL_RADIUS/2, otherShip.pos, Ship.SHIP_SHELL_RADIUS/2):
+                    deltaVec = unit(self.pos - otherShip.pos)
+                    self.pos += deltaVec * 0.1
+                    self.activeCommand.progress = 1
+                
+                # keep in bounds
+                if self.pos[0] <= Ship.SHIP_SHELL_RADIUS/2:
+                    self.pos += v2_right() * 0.1
+                    self.activeCommand.progress = 1
+                if self.pos[1] <= Ship.SHIP_SHELL_RADIUS/2:
+                    self.pos += v2_up() * 0.1
+                    self.activeCommand.progress = 1
+                if self.pos[0] >= self.window.maxCoordinateX() - Ship.SHIP_SHELL_RADIUS/2:
+                    self.pos += v2_left() * 0.3
+                    self.activeCommand.progress = 1
+                if self.pos[1] >= self.window.maxCoordinateY() - Ship.SHIP_SHELL_RADIUS/2:
+                    self.pos += v2_down() * 0.3
+                    self.activeCommand.progress = 1
             
             # and check for done
-            if self.activeCommand.progress == 1:
+            if self.activeCommand.progress == 1 or skipThisCmd:
                 self.vel = v2_zero()
                 self.updateThrusterGfx(False, False)
                 self.finishActiveCommand()
@@ -272,10 +279,17 @@ class Ship(WinObj):
             # enforce a max shot period
             timeSinceShot = (time.time() - self.timeLastShot)
             if timeSinceShot > 1 and self.ammo > 0:
+                # check for invalid shot
+                skipThisCmd = False
+                if lengthSqr(moveVec) < 0.001:
+                    log("INVALID SHOT: Zero direction vector")
+                    skipThisCmd = True
+                    
                 # shoot, save off the time, and then we're done with the cmd
-                self.ammo -= 1
-                Ammo(self.window, self.playerIdx, self.ammoSpawnLocation(), self.dir, self.ammoMaxRange)
-                self.timeLastShot = time.time()
+                if not skipThisCmd:
+                    self.ammo -= 1
+                    Ammo(self.window, self.playerIdx, self.ammoSpawnLocation(), self.dir, self.ammoMaxRange)
+                    self.timeLastShot = time.time()
                 self.finishActiveCommand()
             elif self.ammo <= 0:
                 log("    (shooting without any ammo)")

@@ -114,7 +114,7 @@ class WindowArena(Window):
         tank = self.tanks[0]
         targets = self.sim.objectsOfType(Target)
         powerUps = self.sim.objectsOfType(PowerUp)
-        self.interactExecCmd(tankCmd, self.levelTime, tank, targets, powerUps)
+        self.interactExecCmd(tankCmd, self.levelTime, tank, powerUps, targets)
         
         # tell the tank about it
         tank.queueCommand( tankCmd )
@@ -245,19 +245,22 @@ class WindowArena(Window):
             return
         self.updateTimerAndScoreText()
         
-        # maybe spawn a target
+        # spawn in center
+        spawnInCenter = True if firstUpdate and self.playerCount > 1 else False
+        
+        # maybe spawn some targets
         targets = self.sim.objectsOfType(Target)
-        if len(targets) < levelCount_Targets:
-            loc = self.pickSpawnLocation(5, 3, 3, 0.9, True, firstUpdate)
+        while len(targets) < levelCount_Targets:
+            loc = self.pickSpawnLocation(5, 3, 3, 0.9, True, spawnInCenter)
             vel = v2_zero()
             if self.isSpaceBattle():
                 vel = self.spaceBattlePickTargetDirection(loc) * (random.random() * 1.0 + 1.0)
-            Target(self, loc, vel = vel)
+            targets.append( Target(self, loc, vel = vel) )
             
-        # maybe spawn a powerup
+        # maybe spawn some powerups
         powerUps = self.sim.objectsOfType(PowerUp)
-        if len(powerUps) < levelCount_Powerups:
-            loc = self.pickSpawnLocation(5, 3, 3, 0.9, True, firstUpdate)
+        while len(powerUps) < levelCount_Powerups:
+            loc = self.pickSpawnLocation(5, 3, 3, 0.9, True, spawnInCenter)
             pwrUpOptions = [ "P" ]
             if not self.isTanks_TutorialMode():
                 pwrUpOptions.append( "R" )
@@ -265,7 +268,7 @@ class WindowArena(Window):
             if self.isSpaceBattle():
                 pwrUpOptions = [ "1", "1", "2", "2", "3", "R", "S" ]
             pwrUpType = pwrUpOptions[ int(len(pwrUpOptions) * random.random()) ]
-            PowerUp(self, loc, pwrUpType)
+            powerUps.append( PowerUp(self, loc, pwrUpType) )
 
         # check for object-object collisions            
         self.checkForCollisions()
@@ -422,7 +425,7 @@ class WindowArena(Window):
         pos = v2(self.maxCoordinateX() / 2, self.maxCoordinateY() / 2)
         for i in range(maxAttempts):
             # random
-            pos = v2(random.uniform(0, self.maxCoordinateX()), random.uniform(0, self.maxCoordinateY()))
+            pos = v2(random.uniform(0, self.maxCoordinateX() - 0.5), random.uniform(0, self.maxCoordinateY() - 0.5))
             
             # Support favorMidX (we use this on multiplayer, to try to keep things more fair)...
             if favorMidX:

@@ -47,6 +47,18 @@ class PowerUp(WinObj):
             self.window.canvas.coords(self.gfxRect, self.window.toPixelsX(self.pos[0] - self.halfDims), self.window.toPixelsY(self.pos[1] - self.halfDims), 
                                                     self.window.toPixelsX(self.pos[0] + self.halfDims), self.window.toPixelsY(self.pos[1] + self.halfDims))
 
+    def typeAsInt(self):
+        try:
+            pointValue = int(self.type)
+            return pointValue
+        except:
+            if self.type == "P":
+                return 4
+            elif self.type == "S":
+                return 5
+            elif self.type == "R":
+                return 6
+        return 0
     def pointsPowerupValue(self):
         try:
             pointValue = int(self.type)

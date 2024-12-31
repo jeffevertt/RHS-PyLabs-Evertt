@@ -7,21 +7,29 @@ class TankCmd:
     def __init__(self, dir):
         self.progress = 0
         self.dir = dir
+    def typeAsInt(self):
+        return -1
     def description(self):
         return "TankCmd"
 class TankCmd_Move(TankCmd):
     def __init__(self, dir):
         super().__init__(dir)
+    def typeAsInt(self):
+        return 0
     def description(self):
         return "Move"
 class TankCmd_Turn(TankCmd):
     def __init__(self, dir):
         super().__init__(unit(dir))
+    def typeAsInt(self):
+        return 1
     def description(self):
         return "Turn"
 class TankCmd_Shoot(TankCmd):
     def __init__(self, dir):
         super().__init__(unit(dir))
+    def typeAsInt(self):
+        return 2
     def description(self):
         return "Shoot"
 
@@ -188,33 +196,44 @@ class Tank(WinObj):
             moveDst = length(moveVec)
             moveTravelTime = moveDst / self.tankMoveSpeed
             
+            # check for invalid move
+            skipThisCmd = False
+            if abs(moveVec[0]) > 0.000001 and abs(moveVec[1]) > 0.000001:
+                log("INVALID MOVE: Tanks move only horizontally & vertically")
+                raise Exception('INVALID MOVE: Tanks move only horizontally & vertically')
+                return
+            if lengthSqr(moveVec) < 0.001:
+                log("INVALID MOVE: Zero distance")
+                skipThisCmd = True
+            
             # update the active command
-            self.activeCommand.progress = min(self.activeCommand.progress + deltaTime / moveTravelTime, 1)
-            self.pos = self.activeCommand.startPos + moveVec * self.activeCommand.progress
-            
-            # check for tank overlap
-            otherTank = self.window.getOtherTank(self)
-            if otherTank != None and intersectCircles(self.pos, Tank.TANK_BODY_SIZE/2, otherTank.pos, Tank.TANK_BODY_SIZE/2):
-                deltaVec = unit(self.pos - otherTank.pos)
-                self.pos += deltaVec * 0.1
-                self.activeCommand.progress = 1
-            
-            # keep in bounds
-            if self.pos[0] <= Tank.TANK_BODY_SIZE/2:
-                self.pos += v2_right() * 0.1
-                self.activeCommand.progress = 1
-            if self.pos[1] <= Tank.TANK_BODY_SIZE/2:
-                self.pos += v2_up() * 0.1
-                self.activeCommand.progress = 1
-            if self.pos[0] >= self.window.maxCoordinateX() - Tank.TANK_BODY_SIZE/2:
-                self.pos += v2_left() * 0.3
-                self.activeCommand.progress = 1
-            if self.pos[1] >= self.window.maxCoordinateY() - Tank.TANK_BODY_SIZE/2:
-                self.pos += v2_down() * 0.3
-                self.activeCommand.progress = 1
+            if not skipThisCmd:
+                self.activeCommand.progress = min(self.activeCommand.progress + deltaTime / moveTravelTime, 1)
+                self.pos = self.activeCommand.startPos + moveVec * self.activeCommand.progress
+                
+                # check for tank overlap
+                otherTank = self.window.getOtherTank(self)
+                if otherTank != None and intersectCircles(self.pos, Tank.TANK_BODY_SIZE/2, otherTank.pos, Tank.TANK_BODY_SIZE/2):
+                    deltaVec = unit(self.pos - otherTank.pos)
+                    self.pos += deltaVec * 0.1
+                    self.activeCommand.progress = 1
+                
+                # keep in bounds
+                if self.pos[0] <= Tank.TANK_BODY_SIZE/2:
+                    self.pos += v2_right() * 0.1
+                    self.activeCommand.progress = 1
+                if self.pos[1] <= Tank.TANK_BODY_SIZE/2:
+                    self.pos += v2_up() * 0.1
+                    self.activeCommand.progress = 1
+                if self.pos[0] >= self.window.maxCoordinateX() - Tank.TANK_BODY_SIZE/2:
+                    self.pos += v2_left() * 0.3
+                    self.activeCommand.progress = 1
+                if self.pos[1] >= self.window.maxCoordinateY() - Tank.TANK_BODY_SIZE/2:
+                    self.pos += v2_down() * 0.3
+                    self.activeCommand.progress = 1
             
             # and check for done
-            if self.activeCommand.progress == 1:
+            if self.activeCommand.progress == 1 or skipThisCmd:
                 self.finishActiveCommand()
         elif isinstance(self.activeCommand, TankCmd_Turn):
             trgAngle = angleDeg(self.activeCommand.dir)
@@ -232,9 +251,16 @@ class Tank(WinObj):
             # enforce a max shot period
             timeSinceShot = (time.time() - self.timeLastShot)
             if (timeSinceShot > 1):
+                # check for invalid shot
+                skipThisCmd = False
+                if lengthSqr(moveVec) < 0.001:
+                    log("INVALID SHOT: Zero direction vector")
+                    skipThisCmd = True
+                    
                 # shoot, save off the time, and then we're done with the cmd
-                Ammo(self.window, self.playerIdx, self.ammoSpawnLocation(), self.dir, self.ammoMaxRange)
-                self.timeLastShot = time.time()
+                if not skipThisCmd:
+                    Ammo(self.window, self.playerIdx, self.ammoSpawnLocation(), self.dir, self.ammoMaxRange)
+                    self.timeLastShot = time.time()
                 self.finishActiveCommand()
         self.timeSinceLastCmd += deltaTime
 
