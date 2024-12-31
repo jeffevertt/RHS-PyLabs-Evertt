@@ -18,13 +18,13 @@ class WindowArenaConfig(enum.Flag):
     SPACE_BATTLE = enum.auto()
 
 class WindowArena(Window):
-    def __init__(self, playerCount, userCode1 = None, userCode2 = None, interactExecCmd = None, interactGameDone = None, gameConfig = WindowArenaConfig.TANKS_DEFAULT, windowTitle = "Arena Window"):
+    def __init__(self, userCode1 = None, userCode2 = None, interactExecCmd = None, interactGameDone = None, gameConfig = WindowArenaConfig.TANKS_DEFAULT, windowTitle = "Arena Window"):
         self.gameConfig = gameConfig
 
         bckGndImage = "res/space-background.jpg" if self.isSpaceBattle() else None
         super().__init__(windowTitle, gridPixelsPerUnit = 48, gridOriginAtLL = True, bckGndImage = bckGndImage)
         
-        self.playerCount = playerCount
+        self.playerCount = 2 if userCode2 is not None else 1
         if self.isTanks():
             self.tanks = [ None, None ]
         elif self.isSpaceBattle():
@@ -313,7 +313,7 @@ class WindowArena(Window):
             tanks = self.sim.objectsOfType(Tank)
             for tank in tanks:
                 # note: don't let someone hit themselves
-                if ammo.playerIdx != tank.playerIdx and intersectCircles(tank.pos, tank.tankBodySize/2, ammo.pos, ammo.radius):
+                if ammo.playerIdx != tank.playerIdx and intersectCircles(tank.pos, tank.TANK_BODY_SIZE/2, ammo.pos, ammo.radius):
                     # award points
                     self.awardPoints(25, ammo.playerIdx)
                     log("(hit tank: score +25)")

@@ -135,6 +135,8 @@ class Ship(WinObj):
         return v2(self.dir[1], -self.dir[0])
     def ammoSpawnLocation(self):
         return self.toWorld(v2(Ship.SHIP_SHELL_RADIUS, 0))
+    def getOther(self):
+        return self.window.getOtherShip(self)
     
     def setPlayerName(self, playerName):
         self.window.setPlayerName(playerName, self.playerIdx)
@@ -146,12 +148,12 @@ class Ship(WinObj):
         
         # Do the kick back...
         kickBackLoc = clampToClosestHalfUnit(self.pos + unit(dir) * 1.414)
-        if isInsideField(kickBackLoc, 0.25):
+        if isInsideField(self.window, kickBackLoc, 0.25):
             self.pos = kickBackLoc
             self.updateGfx()
         else:
             kickBackLoc = self.pos + unit(dir) * (1.414 / 2)
-            if isInsideField(kickBackLoc, 0.25):
+            if isInsideField(self.window, kickBackLoc, 0.25):
                 self.pos = kickBackLoc
                 self.updateGfx()
         

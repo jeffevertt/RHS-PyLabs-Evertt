@@ -93,8 +93,7 @@ def updateTank1(tank: Tank, powerUps: List[PowerUp], targets: List[Target]):
 #############################  DO NOT MODIFY  METHODS BELOW THIS LINE  #############################
 ##############################  EXCEPT TO CHANGE GAME CONFIG ARGUMENT ##############################
 ####################################################################################################
-WindowArena(playerCount = 1, 
-            userCode1 = updateTank1,
+WindowArena(userCode1 = updateTank1,
             interactExecCmd = onExecCmd,
             interactGameDone = onGameDone,
             gameConfig = WindowArenaConfig.TANKS_INTERACTIVE, #WindowArenaConfig.TANKS_INTERACTIVE, #WindowArenaConfig.TANKS_ADVANCED,
