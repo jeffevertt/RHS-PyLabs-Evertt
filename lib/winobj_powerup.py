@@ -12,7 +12,8 @@ class PowerUp(WinObj):
         
         self.type = type
         self.timeTillDeath = 0
-        self.halfDims = self.HALFDIMS
+        self.timeSinceBorn = 0
+        self.halfDims = self.HALFDIMS * 0.001   # start small (animate in)
   
         self.window.sim.onCreated(self)
         self.createGfx()
@@ -73,10 +74,10 @@ class PowerUp(WinObj):
         playerIsTank = isinstance(player, Tank)
         playerIsShip = isinstance(player, Ship)
 
-        # trigger death spiral...
+        # trigger death spiral
         self.timeTillDeath = max(self.timeTillDeath, 0.0001)
-        
-        # give up the points...
+
+        # give up the points
         pointValueType = self.pointsPowerupValue()
         if pointValueType > 0:
             if playerIsShip:
@@ -99,23 +100,30 @@ class PowerUp(WinObj):
             log("Invalid powerup type = " + self.type)
 
     def update(self, deltaTime):
-        # if dieing, continue...
+        # if dieing, continue
         if self.isDying():
-            # update it...
+            # death timer
             self.timeTillDeath = min(self.timeTillDeath + deltaTime * 2.0, 1.0)
             
-            # scale it down...
-            self.halfDims = self.halfDims * max(1.0 - self.timeTillDeath, 0.001)
+            # scale it down
+            self.halfDims = self.HALFDIMS * max(1.0 - self.timeTillDeath, 0.001)
             self.updateGfx()
         else:
-            # check for tanks collecting us...
+            # spawn animation
+            prevTimeSinceBorn = self.timeSinceBorn
+            self.timeSinceBorn += deltaTime
+            if prevTimeSinceBorn < 0.5:
+                self.halfDims = self.HALFDIMS * min(self.timeSinceBorn * 2, 1)
+                self.updateGfx()
+            
+            # check for tanks collecting us
             tanks = self.window.sim.objectsOfType(Tank)
             for tank in tanks:
                 if intersectCirclePt(self.pos, self.HALFDIMS * 2, tank.pos):
                     # react to it & that's it for us
                     self.onCollected(tank)
                     self.timeTillDeath = max(self.timeTillDeath, 0.0001)
-            # check for ships collecting us...
+            # check for ships collecting us
             ships = self.window.sim.objectsOfType(Ship)
             for ship in ships:
                 if intersectCirclePt(self.pos, self.HALFDIMS * 2, ship.pos):

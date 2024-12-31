@@ -8,8 +8,9 @@ class Target(WinObj):
         super().__init__(window, pos, vel)
         
         self.startPos = pos
-        self.radius = self.RADIUS
+        self.radius = self.RADIUS * 0.001   # start small (animate in)
         self.timeTillDeath = 0
+        self.timeSinceBorn = 0
         self.gfxCircles = [None, None, None]
         self.gfxBody = None
   
@@ -71,7 +72,7 @@ class Target(WinObj):
         log("(hit target: score +20)")
     
     def update(self, deltaTime):
-        # if dieing, continue
+        # spawn/death anims
         if self.timeTillDeath > 0:
             # update it
             self.timeTillDeath = min(self.timeTillDeath + deltaTime * 2.0, 1.0)
@@ -79,8 +80,16 @@ class Target(WinObj):
             # scale it down
             self.radius = self.radius * max(1.0 - self.timeTillDeath, 0.001)
             self.updateGfx()
+        else:
+            # spawn animation
+            prevTimeSinceBorn = self.timeSinceBorn
+            self.timeSinceBorn += deltaTime
+            if prevTimeSinceBorn < 0.5:
+                self.radius = self.RADIUS * min(self.timeSinceBorn * 2, 1)
+                self.updateGfx()
+                
         # moving target support
-        elif self.isMovingTarget():
+        if self.isMovingTarget():
             self.pos += self.vel * deltaTime
             self.updateGfx()
         

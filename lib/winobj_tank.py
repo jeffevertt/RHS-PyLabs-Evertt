@@ -253,7 +253,7 @@ class Tank(WinObj):
             if (timeSinceShot > 1):
                 # check for invalid shot
                 skipThisCmd = False
-                if lengthSqr(moveVec) < 0.001:
+                if lengthSqr(self.activeCommand.dir) < 0.001:
                     log("INVALID SHOT: Zero direction vector")
                     skipThisCmd = True
                     
