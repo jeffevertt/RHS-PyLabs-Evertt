@@ -15,6 +15,10 @@ class Line(WinObj):
         self.destroyGfx()
         super().destroy()
         
+    def shouldBeCulled(self):
+        # don't do auto-culling of lines
+        return False
+        
     def createGfx(self):
         self.gfxLine = self.window.canvas.create_line(self.window.toPixelsX(self.posA[0]), self.window.toPixelsY(self.posA[1]), 
                                                       self.window.toPixelsX(self.posB[0]), self.window.toPixelsY(self.posB[1]), 

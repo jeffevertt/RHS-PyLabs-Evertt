@@ -1,6 +1,7 @@
 import numpy as np
 from webcolors import name_to_hex
 import math
+import random
 
 def v2(x, y):
     return np.array([x, y], dtype=np.float64)
@@ -56,6 +57,9 @@ def cross(v, w):
 def angleDeg(v):
     return math.degrees(math.atan2(v[1],v[0]))
 
+def randRange(min, max):
+    return min + (max - min) * random.random()
+
 def posAngleDeg(a):
     return a if a >= 0 else a + 360
 def compareDst(a, b):
@@ -82,11 +86,11 @@ def lerp(a, b, t):
     return a + (b - a) * clamp(t, 0, 1)
 
 def sinDeg(angleDeg):
-    return math.asin(math.radians(angleDeg))
+    return math.sin(math.radians(angleDeg))
 def cosDeg(angleDeg):
-    return math.acos(math.radians(angleDeg))
+    return math.cos(math.radians(angleDeg))
 def tanDeg(angleDeg):
-    return math.atan(math.radians(angleDeg))
+    return math.tan(math.radians(angleDeg))
 def asinDeg(r):
     return math.degrees(math.asin(r))
 def acosDeg(r):
@@ -222,7 +226,7 @@ def calcRotatedTrianglePtsInPixels(center, minX, maxX, minY, maxY, angle, window
         pixel.append( window.toPixels(center + rotateVec2(local[i], angle)) )
     return [ (pixel[0][0], pixel[0][1]), (pixel[1][0], pixel[1][1]), (pixel[2][0], pixel[2][1]) ]
 
-def clipLineAgainstNearPlane(p1, p2):
+def clipLineAgainstNearPlaneNDC(p1, p2):
     # Cohen-Sutherland algorithm (points in normalized device coordinates, -1 to 1)
     def outcode(p):
         code = 0
@@ -322,8 +326,8 @@ def m4x4LookAt(forward, up = v3_up(), pos = v3_zero()):
         m4x4[i, 3] = pos[i]
     m4x4[3, 3] = 1
     return m4x4
-def m4x4Proj(fovFullDeg = 90, clipNear = 0.1, clipFar = 1000, aspectWoverH = 1):
-    fovS = 1 / math.tan( math.radians(fovFullDeg) / 2 )
+def m4x4Proj(fovVertFullDeg = 90, clipNear = 0.1, clipFar = 1000, aspectWoverH = 1):
+    fovS = 1 / math.tan( math.radians(fovVertFullDeg) / 2 )
     m4x4 = np.zeros((4, 4))
     m4x4[0,0] = fovS / aspectWoverH
     m4x4[1,1] = fovS

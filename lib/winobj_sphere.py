@@ -14,6 +14,9 @@ class Sphere(WinObj):
         self.destroyGfx()
         super().destroy()
         
+    def shouldBeCulled(self):   # in 3d, 2d culling from base class doesn't work here
+        return False
+        
     def createGfx(self):
         self.gfxCircle = self.window.canvas.create_oval(0, 0, 1, 1, fill = self.color, outline = "black", width = 1)
         self.updateGfx()

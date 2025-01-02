@@ -8,7 +8,7 @@ import aiohttp
 import json
 
 class Window:
-    def __init__(self, title, width = 1024, height = 600, subTitle = "", gridEnable = True, clickReleaseFn = None, gridPixelsPerUnit = 24, gridOriginAtLL = False, bckGndImage = None):
+    def __init__(self, title, width = 1024, height = 600, subTitle = "", gridEnable = True, clickReleaseFn = None, gridPixelsPerUnit = 24, gridOriginAtLL = False, canvasColor = '#F4EAD7', bckGndImage = None):
         # consts
         self.gridPixelsPerUnit = gridPixelsPerUnit
         
@@ -32,7 +32,7 @@ class Window:
         self.root = tk.Tk()
         self.root.title(title)
         self.root.resizable(False, False)  # Disables resizing in both width and height
-        self.canvasColor = '#F4EAD7'
+        self.canvasColor = canvasColor
         self.canvas = tk.Canvas(self.root, width = self.width, height = self.height, bg = self.canvasColor)
         self.canvas.pack()
         

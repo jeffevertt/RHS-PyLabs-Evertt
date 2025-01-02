@@ -4,16 +4,18 @@ from lib.utils import *
 
 # right handed, y up (z forward, x left)
 class Window3D(Window):
-    def __init__(self, title):
-        super().__init__(title, gridEnable = False)
+    NEAR_CLIP_DST = 0.1
+    
+    def __init__(self, title, canvasColor = '#F4EAD7'):
+        super().__init__(title, gridEnable = False, canvasColor = canvasColor)
         
     def initApp(self):
         super().initApp()
 
         # transforms
-        self.cameraFov_fullDeg = 100
+        self.cameraFovVert_fullDeg = 100
         self.setCameraTransform( m3x3Identity(), v3(0,0,0.01) )
-        self.transProj = m4x4Proj(self.cameraFov_fullDeg, aspectWoverH = self.width / self.height)
+        self.transProj = m4x4Proj(self.cameraFovVert_fullDeg, aspectWoverH = self.width / self.height, clipNear = Window3D.NEAR_CLIP_DST)
         
         # member vars
         self.cameraRotatedViaMouse = False
@@ -44,15 +46,35 @@ class Window3D(Window):
         self.transCamera = np.eye(4)
         self.transCamera[:3, :3] = self.cameraOrient
         self.transCamera[:3, 3] = -self.cameraOrient @ self.cameraPos
+
+    def getCameraNearClipDst(self):
+        return Window3D.NEAR_CLIP_DST
+    def getCameraNearClipPlaneRight(self):
+        return self.getCameraRight() * (tanDeg(self.getCameraFovFullVert() / 2) * Window3D.NEAR_CLIP_DST * (self.width / self.height))
+    def getCameraNearClipPlaneUp(self):
+        return self.getCameraUp() * (tanDeg(self.getCameraFovFullVert() / 2) * Window3D.NEAR_CLIP_DST)
+    def getCameraFovFullVert(self):
+        return self.cameraFovVert_fullDeg
         
     def worldTo2D(self, pos, clip = False):
         toScreenSpace = self.transProj @ self.transCamera
         x, y, z, w = toScreenSpace @ v4(pos)
         x, y, z = x / w, y / w, z / w                                   # in normalized device coordinates (-1 to 1)
-        if clip and (z < -1 or z > 1):
+        if clip and abs(z) > 1:
             return None
         y = -y                                                          # inverted y
-        return v2(x * self.maxCoordinateX(), y * self.maxCoordinateY()) # screen space scaling
+        return v2(x * self.maxCoordinateX(), y * self.maxCoordinateY()) # screen coordinate frame scaling x∈[-minX, maxX] and y∈[-maxY, maxY]
+    def isPointInViewFrustum(self, pos):
+        toScreenSpace = self.transProj @ self.transCamera               # process: put it in normalized device coordinates (-1 to 1) and check extents
+        x, y, z, w = toScreenSpace @ v4(pos)
+        x, y, z = x / w, y / w, z / w
+        return True if abs(x) <= 1 and abs(y) <= 1 and abs(z) <= 1 else False
+    
+    def toCameraSpace(self, pos):
+        posCamSpace = self.transCamera @ v4(pos)
+        return v3_from_v4(posCamSpace)
+    def toWorldSpaceFromCameraSpace(self, posCamSpace):
+        return self.getCameraPos() + self.getCameraRight() * posCamSpace[0] + self.getCameraUp() * posCamSpace[1] + self.getCameraForward() * posCamSpace[2]
 
     def transformAndClipLine(self, posA, posB, modelToWorld = m4x4Identity()):
         toScreenSpace = self.transProj @ self.transCamera @ modelToWorld
@@ -60,7 +82,7 @@ class Window3D(Window):
         posB = toScreenSpace @ v4(posB)
         posA /= posA[3]
         posB /= posB[3]
-        posA, posB = clipLineAgainstNearPlane(posA, posB)
+        posA, posB = clipLineAgainstNearPlaneNDC(posA, posB)
         if posA is None or posB is None:
             return None, None
         posA[1], posB[1] = -posA[1], -posB[1]                           # inverted y
@@ -69,7 +91,11 @@ class Window3D(Window):
     def scaleAtPos(self, pos):
         posPt = self.worldTo2D(pos)
         posOneOver = self.worldTo2D(pos + self.getCameraRight())
-        return (posOneOver[0] - posPt[0])
+        return abs(posOneOver[0] - posPt[0])
+    
+    def isInFrontOfCamera(self, pos):
+        delta = pos - self.cameraPos
+        return dot(delta, self.getCameraForward()) > 0
     
     def onMouseMotion(self, event):
         prevMousePos = self.lastMousePos

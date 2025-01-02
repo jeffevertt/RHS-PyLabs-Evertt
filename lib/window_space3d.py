@@ -1,51 +1,37 @@
 from lib.window_3d import Window3D
-from lib.winobj_sphere import Sphere
-from lib.winobj_line import Line
+from lib.winobj_star import Star
 from lib.utils import *
 
 class WindowSpace3D(Window3D):
-    def __init__(self, windowTitle, setupLevelFn = None, updateLevelFn = None, cameraPos = v3_zero()):
-        super().__init__(windowTitle)
+    def __init__(self, windowTitle, spawnStarsFn, updateCameraFn, cameraPos = v3_zero()):
+        super().__init__(windowTitle, canvasColor = '#000000')
 
-        self.worldLines = [] # tuple (pt, pt, Line)
-        self.setupLevelFn = setupLevelFn
-        self.updateLevelFn = updateLevelFn
+        self.spawnStarsFn = spawnStarsFn
+        self.updateCameraFn = updateCameraFn
         self.initCameraPos = cameraPos
-        self.modelToWorld = m4x4Identity()
         
     def initApp(self):
         super().initApp()
 
         self.setCameraPos( self.initCameraPos )
-        self.updateWorldLines()
         
-        if self.setupLevelFn != None:
-            self.setupLevelFn(self.addLine)
+        self.update(0)
         
-    def addLine(self, ptA, ptB, color = "darkblue"):
-        self.worldLines.append( (ptA, ptB, Line( self, ptA, ptB, color )) )
-        self.updateWorldLines()
-        
-    def updateWorldLines(self):
-        for worldLine in self.worldLines:
-            ptA, ptB, line = worldLine[0], worldLine[1], worldLine[2]
-            line.updateLinePositions( *self.transformAndClipLine(ptA, ptB, self.modelToWorld) )
-            
+    def toCameraSpace_fromLastFrame(self, pos):
+        posCamSpace = self.transCamera_fromLastFrame @ v4(pos)
+        return v3_from_v4(posCamSpace)
+
     def update(self, deltaTime):
         super().update(deltaTime)
         
-        updateWorldLines = False
-        
-        # user code level update
-        if self.updateLevelFn != None:
-            self.modelToWorld = self.updateLevelFn(deltaTime, self.modelToWorld)
-            updateWorldLines = True
-        
-        # camera
-        if self.updateCamera(deltaTime):
-            # camera has moved, need to update the lines positions
-            updateWorldLines = True
+        # update camera            
+        if self.updateCameraFn != None:
+            wasdBtns = [ self.isKeyPressed('w'), self.isKeyPressed('a'), self.isKeyPressed('s'), self.isKeyPressed('d') ]
+            shiftCtrlBtns = [ self.isKeyPressed('Shift_L') or self.isKeyPressed('Shift_R'), self.isKeyPressed('Control_L') or self.isKeyPressed('Control_R') ]
+            self.transCamera_fromLastFrame = self.transCamera.copy()
+            self.updateCameraFn( self, wasdBtns, shiftCtrlBtns, deltaTime )
             
-        # maybe retransform the world lines
-        if updateWorldLines:
-            self.updateWorldLines()
+        # spawn stars
+        if self.spawnStarsFn != None:
+            numStars = self.sim.countObjectsOfType(Star)
+            self.spawnStarsFn( self, numStars )
