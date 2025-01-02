@@ -2,8 +2,11 @@ from lib.window import Window
 from lib.utils import *
 from lib.winobj_circle import Circle
 
-############ IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB ###########
-# The circle should collide with the other ball and reflect/bounce off of it #
+############## IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB ############
+### The circle should collide with the other ball and reflect/bounce off of it ##
+## Access the moving ball, circle, using circle.pos, circle.vel, circle.radius ##
+####### ball that's stuck in one place is ball (use ball.pos & ball.radius) #####
+#################################################################################
 def updateFunction(circle, deltaTime):
     # TODO...use circle.pos and circle.vel (both 2d vectors)
     pass
