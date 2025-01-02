@@ -4,7 +4,7 @@ from lib.utils import *
 
 # right handed, y up (z forward, x left)
 class Window3D(Window):
-    def __init__(self, title, updateBallFn = None):
+    def __init__(self, title):
         super().__init__(title, gridEnable = False)
         
     def initApp(self):
