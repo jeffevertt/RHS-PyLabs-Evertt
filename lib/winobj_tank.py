@@ -146,6 +146,18 @@ class Tank(WinObj):
 
     def toWorld(self, pt):
         return self.pos + self.forward() * pt[0] + self.dir * pt[1]
+    
+    def calcMoveVel(self):
+        if self.activeCommand != None and isinstance(self.activeCommand, TankCmd_Move):
+            return unit(self.activeCommand.dir) * self.tankMoveSpeed
+        return v2_zero()
+
+    def calcAngVel(self):
+        if self.activeCommand != None and isinstance(self.activeCommand, TankCmd_Turn):
+            trgAngle = angleDeg(self.activeCommand.dir)
+            angleDelta = minAngleToAngleDelta(angleDeg(self.activeCommand.startDir), trgAngle)
+            return self.tankTurnSpeed * (-1 if (angleDelta < 0) else 1)
+        return 0
 
     def queueCommand(self, command, insertFront = False):
         if insertFront:
@@ -219,7 +231,7 @@ class Tank(WinObj):
                     deltaVec = unit(self.pos - otherTank.pos)
                     self.pos += deltaVec * 0.1
                     self.activeCommand.progress = 1
-                
+
                 # keep in bounds
                 if self.pos[0] <= Tank.TANK_BODY_SIZE/2:
                     self.pos += v2_right() * 0.1
