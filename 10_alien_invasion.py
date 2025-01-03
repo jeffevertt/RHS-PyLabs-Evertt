@@ -7,7 +7,7 @@ from lib.window_alien_invasion import *
 #   aliens              - the list of aliens
 #   aliens[0].pos       - position of the first alien in the list
 #   aliens[0].vel       - velocity of the first alien in the list
-def updateCannon(cannon, aliens):
+def updateCannon(cannon, aliens, deltaTime):
     # TODO: your code goes here
     pass
 

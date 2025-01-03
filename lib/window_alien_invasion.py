@@ -189,7 +189,7 @@ class WindowAlienInvasion(Window):
         aliens = self.sim.objectsOfType(Image)
         for i, userCode in enumerate(self.userCode):
             if userCode != None and self.cannons[i].isIdle():
-                userCode(self.cannons[i], aliens)
+                userCode(self.cannons[i], aliens, deltaTime)
                 
         # update the cannons
         for cannon in self.cannons:
