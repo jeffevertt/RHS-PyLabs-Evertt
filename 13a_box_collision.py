@@ -6,19 +6,10 @@ from lib.winobj_rectangle import Rectangle
 ####### IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB #######
 # The ball should collide with the box and reflect/bounce off of it #
 def updateBallFunction(ball, deltaTime):
-    ball.pos += ball.vel * deltaTime
+    # TODO...use ball.pos and ball.vel (both 2d vectors)
     
-    # collide with box
-    closestPt = clampV2(ball.pos, box.pos - v2(box.width/2,box.height/2), box.pos + v2(box.width/2,box.height/2))
-    if length(ball.pos - closestPt) > 0.00001:
-        dst = length(ball.pos - closestPt) - ball.radius
-        normal = unit(ball.pos - closestPt)
-    else:
-        dst = -ball.radius
-        normal = unit(ball.pos - box.pos)
-    if dst < 0:
-        ball.pos -= normal * dst
-        ball.vel += normal * (ball.vel @ normal * -2)
+    # collide with the box (use: box.pos, box.width, box.height)
+    pass
         
 
 
