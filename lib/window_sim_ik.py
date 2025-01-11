@@ -4,11 +4,15 @@ from lib.winobj_link import *
 from lib.utils import *
 
 class WindowSimIK(Window):
-    def __init__(self, setupFn = None, updateChainFn = None):
-        super().__init__("Lab 15: Simulation!", gridPixelsPerUnit = 24)
+    def __init__(self, setupFn = None, updateChainFn = None, updateChainSubSteps = 10, relaxChainFn = None, relaxChainSubSteps = 10, simTimeScalar = 2):
+        super().__init__("Lab 15: Simulation!", gridPixelsPerUnit = 24, clickReleaseFn = self.onMouseClickRelease)
         
         self.setupFn = setupFn
+        self.simTimeScalar = simTimeScalar
         self.updateChainFn = updateChainFn
+        self.updateChainSubSteps = updateChainSubSteps
+        self.relaxChainFn = relaxChainFn
+        self.relaxChainSubSteps = relaxChainSubSteps
         self.selectedLink = None
         self.selectedLinkForcePos = None
         
@@ -70,7 +74,7 @@ class WindowSimIK(Window):
         node = chain[0]
         while node is not None:
             node.updateDirVec()
-            node.updatePrevPos()
+            node.updatePrevPos() # note: removes all momentum in the system
             node = node.child
             
     def isHeadOrParentOfLink(self, parent, child):
@@ -93,9 +97,13 @@ class WindowSimIK(Window):
                 self.selectedLinkForcePos = mousePos if self.selectedLink.parent is not None else v2_zero()
                 break
     def onMouseLeftReleased(self, event):
-        super().onMouseLeftReleased(event)
+        super().onMouseLeftReleased(event) # note: this will trigger onMouseClickRelease
         self.selectedLink = None
         self.selectedLinkForcePos = None
+    def onMouseClickRelease(self, mousePos, mouseVel):
+        # if we were holding a link impart some of the mouse velocity on the selectedLink
+        if self.selectedLink is not None and self.selectedLink.parent is not None and self.selectedLink.prevPos is not None:
+            self.selectedLink.prevPos -= mouseVel * 0.1
     def onMouseMotion(self, event):
         mousePos = self.toCoordFrame(v2(event.x, event.y))
         if self.selectedLink is not None and self.lastMousePos is not None:
@@ -127,35 +135,57 @@ class WindowSimIK(Window):
         
         # tell the simulation about it
         self.sim.update(0)
+        
+    def getChainHeadNodes(self):
+        headNodes = []
+        links = self.sim.objectsOfType(Link)
+        for link in links:
+            # if no parent, then it's a head
+            if link.parent is None and link.child is not None:
+                headNodes.append(link)
+        return headNodes
 
     def updateLevel(self, deltaTime, firstUpdate = False):
-        # consts
-        subSteps = 10
-        timeScale = 5
+        # find all the head nodes (precalc this, will need it in a bit)
+        headNodes = self.getChainHeadNodes()
         
-        # call update on all the head nodes
+        # updateChain (call on all the head nodes)
         if self.updateChainFn != None:
-            # update all chains (passing in the head)            
-            links = self.sim.objectsOfType(Link)
-            for link in links:
-                # if no parent, then it's a head, need to update
-                if link.parent is None and link.child is not None:
-                    # if mouse has one, ik to the position
-                    if self.selectedLink is not None and self.isHeadOrParentOfLink(link, self.selectedLink):
-                        self.applyMouseSelectedLink()
-                    
-                    # substep support
-                    subStepDeltaTime = deltaTime * timeScale / subSteps
-                    for i in range(subSteps):
-                        # let user code update this chain
-                        subStepPerc = i / (subSteps - 1)
-                        self.updateChainFn(subStepDeltaTime, link, subStepPerc)
-            
-                    # if mouse has one, ik to the position
-                    if self.selectedLink is not None and self.isHeadOrParentOfLink(link, self.selectedLink):
-                        self.applyMouseSelectedLink()
+            for headNode in headNodes:
+                # if mouse has one, ik to the position
+                if self.selectedLink is not None and self.isHeadOrParentOfLink(headNode, self.selectedLink):
+                    self.applyMouseSelectedLink()
+                
+                # substep support
+                subStepDeltaTime = deltaTime * self.simTimeScalar / self.updateChainSubSteps
+                for i in range(self.updateChainSubSteps):
+                    # let user code update this chain
+                    subStepPerc = i / (self.updateChainSubSteps - 1)
+                    self.updateChainFn(subStepDeltaTime, headNode, subStepPerc)
+        
+                # if mouse has one, ik to the position
+                if self.selectedLink is not None and self.isHeadOrParentOfLink(headNode, self.selectedLink):
+                    self.applyMouseSelectedLink()
+        
+        # relaxChain (call on all the head nodes)
+        if self.relaxChainFn != None:
+            for headNode in headNodes:
+                # if mouse has one, ik to the position
+                if self.selectedLink is not None and self.isHeadOrParentOfLink(headNode, self.selectedLink):
+                    self.applyMouseSelectedLink()
+                
+                # substep support
+                for i in range(self.relaxChainSubSteps):
+                    # let user code relax this chain
+                    subStepPerc = i / (self.relaxChainSubSteps - 1)
+                    self.relaxChainFn(headNode, subStepPerc)
+        
+                # if mouse has one, ik to the position
+                if self.selectedLink is not None and self.isHeadOrParentOfLink(headNode, self.selectedLink):
+                    self.applyMouseSelectedLink()
 
         # update link dirVecs & graphics objects
-        for link in links:
+        allLinks = self.sim.objectsOfType(Link)
+        for link in allLinks:
             link.updateDirVec()
         self.sim.updateGfxAllObjects()

@@ -143,7 +143,7 @@ class Window:
     def onMouseMotion(self, event):
         mousePos = self.toCoordFrame(v2(event.x, event.y))
         if self.lastMousePos != None:
-            vel = (mousePos - self.lastMousePos[0]) / max(time.time() - self.lastMousePos[1], 0.00001)
+            vel = ((mousePos - self.lastMousePos[0]) / max(time.time() - self.lastMousePos[1], 0.01))
             if len(self.mouseLeftVelHist) > 8:
                 self.mouseLeftVelHist = self.mouseLeftVelHist[1:]
             self.mouseLeftVelHist.append(vel)
