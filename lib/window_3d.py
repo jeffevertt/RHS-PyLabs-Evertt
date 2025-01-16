@@ -62,7 +62,7 @@ class Window3D(Window):
         x, y, z = x / w, y / w, z / w                                   # in normalized device coordinates (-1 to 1)
         if clip and abs(z) > 1:
             return None
-        y = -y                                                          # inverted y
+        y = -y                                                          # inverted y (pixel space is inverted)
         return v2(x * self.maxCoordinateX(), y * self.maxCoordinateY()) # screen coordinate frame scaling x∈[-minX, maxX] and y∈[-maxY, maxY]
     def isPointInViewFrustum(self, pos):
         toScreenSpace = self.transProj @ self.transCamera               # process: put it in normalized device coordinates (-1 to 1) and check extents
@@ -85,7 +85,7 @@ class Window3D(Window):
         posA, posB = clipLineAgainstNearPlaneNDC(posA, posB)
         if posA is None or posB is None:
             return None, None
-        posA[1], posB[1] = -posA[1], -posB[1]                           # inverted y
+        posA[1], posB[1] = -posA[1], -posB[1]                           # inverted y (pixel space is inverted)
         return v2(posA[0] * self.maxCoordinateX(), posA[1] * self.maxCoordinateY()), v2(posB[0] * self.maxCoordinateX(), posB[1] * self.maxCoordinateY())
     
     def scaleAtPos(self, pos):

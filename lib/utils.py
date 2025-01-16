@@ -53,7 +53,9 @@ def dot(v, w):
     return v @ w
 def cross(v, w):
     return np.cross(v, w)
-    
+def vecEqual(a, b):
+    return np.array_equal(a, b)
+
 def angleDeg(v):
     return math.degrees(math.atan2(v[1],v[0]))
 
@@ -256,6 +258,33 @@ def clipLineAgainstNearPlaneNDC(p1, p2):
             else:
                 p2 = v3(x, y, z)
                 outcode2 = outcode(p2)
+def clipTriAgainstNearPlaneNDC(p1, p2, p3):
+    # returns one or two triangles (each an array of three points...or None)
+    p1c, p2c = clipLineAgainstNearPlaneNDC(p1, p2)
+    if vecEqual(p1c, p1) and vecEqual(p2c, p2):
+        p1c, p3a = clipLineAgainstNearPlaneNDC(p1, p3)
+        if vecEqual(p1c, p1) and vecEqual(p3a, p3):
+            return [ p1, p2, p3 ], None
+        p2c, p3b = clipLineAgainstNearPlaneNDC(p2, p3)
+        return [ p1c, p2c, p3a ], [ p3a, p2c, p3b ]
+    elif p1c is None or p2c is None:
+        p1c, p3a = clipLineAgainstNearPlaneNDC(p1, p3)
+        p2c, p3b = clipLineAgainstNearPlaneNDC(p2, p3)
+        if p1c is None or p2c is None or p3a is None or p3b is None:
+            return None, None
+        return [ p3a, p3b, p3 ], None
+    elif vecEqual(p1c, p1):
+        p1b, p3c = clipLineAgainstNearPlaneNDC(p1, p3)
+        if vecEqual(p3, p3c):
+            p2b, p3c = clipLineAgainstNearPlaneNDC(p2, p3)
+            return [ p1, p2c, p2b ], [ p1, p2b, p3 ]
+        return [ p1, p2c, p3c ], None
+    else: # vecEqual(p2c, p2)
+        p1b, p3c = clipLineAgainstNearPlaneNDC(p1, p3)
+        if vecEqual(p3, p3c):
+            return [ p1b, p1c, p2 ], [ p1b, p2, p3 ]
+        p2c, p3c = clipLineAgainstNearPlaneNDC(p2, p3)
+        return [ p1c, p2, p2c ], None
 
 def m3x3Identity():
     return np.eye(3)
