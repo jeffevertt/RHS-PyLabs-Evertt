@@ -2,7 +2,7 @@ from lib.winobj import WinObj
 from lib.utils import *
 
 class Tri3D(WinObj):
-    def __init__(self, window, posA, posB, posC, color = "blue"):
+    def __init__(self, window, posA, posB, posC, color = "blue"): #todo: add cull(true/false: true CCW)
         self.posA = posA
         self.posB = posB
         self.posC = posC
