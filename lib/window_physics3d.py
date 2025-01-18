@@ -1,9 +1,7 @@
 import tkinter as tk
 from lib.window import Window
 from lib.window_3d import Window3D
-from lib.winobj_sphere import Sphere
-from lib.winobj_line import Line
-from lib.winobj_tri3d import Tri3D
+from lib.winobj_plane import Plane
 from lib.utils import *
 
 class WindowPhysics3D(Window3D):
@@ -24,8 +22,10 @@ class WindowPhysics3D(Window3D):
             self.setupLevelFn(self)
         
     def updateWorldGeo(self):
-        # todo
-        pass
+        planes = self.sim.objectsOfType(Plane)
+        for plane in planes:
+            plane.updateGeo()
+        # TODO: Cuboids
             
     def update(self, deltaTime):
         super().update(deltaTime)
@@ -34,7 +34,7 @@ class WindowPhysics3D(Window3D):
         
         # user code level update
         if self.updateLevelFn != None:
-            self.updateLevelFn(deltaTime)
+            self.updateLevelFn(self, deltaTime)
             updateWorldGeo = True
         
         # camera

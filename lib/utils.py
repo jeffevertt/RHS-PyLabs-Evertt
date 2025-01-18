@@ -260,31 +260,26 @@ def clipLineAgainstNearPlaneNDC(p1, p2):
                 outcode2 = outcode(p2)
 def clipTriAgainstNearPlaneNDC(p1, p2, p3):
     # returns one or two triangles (each an array of three points...or None)
-    p1c, p2c = clipLineAgainstNearPlaneNDC(p1, p2)
-    if vecEqual(p1c, p1) and vecEqual(p2c, p2):
-        p1c, p3a = clipLineAgainstNearPlaneNDC(p1, p3)
-        if vecEqual(p1c, p1) and vecEqual(p3a, p3):
-            return [ p1, p2, p3 ], None
-        p2c, p3b = clipLineAgainstNearPlaneNDC(p2, p3)
-        return [ p1c, p2c, p3a ], [ p3a, p2c, p3b ]
-    elif p1c is None or p2c is None:
-        p1c, p3a = clipLineAgainstNearPlaneNDC(p1, p3)
-        p2c, p3b = clipLineAgainstNearPlaneNDC(p2, p3)
-        if p1c is None or p2c is None or p3a is None or p3b is None:
-            return None, None
-        return [ p3a, p3b, p3 ], None
-    elif vecEqual(p1c, p1):
-        p1b, p3c = clipLineAgainstNearPlaneNDC(p1, p3)
-        if vecEqual(p3, p3c):
-            p2b, p3c = clipLineAgainstNearPlaneNDC(p2, p3)
-            return [ p1, p2c, p2b ], [ p1, p2b, p3 ]
-        return [ p1, p2c, p3c ], None
-    else: # vecEqual(p2c, p2)
-        p1b, p3c = clipLineAgainstNearPlaneNDC(p1, p3)
-        if vecEqual(p3, p3c):
-            return [ p1b, p1c, p2 ], [ p1b, p2, p3 ]
-        p2c, p3c = clipLineAgainstNearPlaneNDC(p2, p3)
-        return [ p1c, p2, p2c ], None
+    p1a, p2a = clipLineAgainstNearPlaneNDC(p1, p2)
+    p1b, p3b = clipLineAgainstNearPlaneNDC(p1, p3)
+    p2c, p3c = clipLineAgainstNearPlaneNDC(p2, p3)
+    if p1a is None and p1b is None:                                     # fully clipped
+        return None, None
+    elif vecEqual(p1a, p1) and vecEqual(p2a, p2) and vecEqual(p3b, p3): # no clipping
+        return [ p1, p2, p3 ], None
+    elif p1a is None and p2a is None:                                   # single triangle cases
+        return [ p1b, p2c, p3 ], None
+    elif p1b is None and p3b is None:
+        return [ p3c, p1a, p2 ], None
+    elif p2c is None and p3c is None:
+        return [ p2a, p3b, p1 ], None
+    elif vecEqual(p1a, p1) and vecEqual(p2a, p2):                       # two triangle cases
+        return [ p3b, p1, p2 ], [ p3b, p2, p3c ]
+    elif vecEqual(p1b, p1) and vecEqual(p3b, p3):
+        return [ p2a, p3, p1 ], [ p2a, p2c, p3 ]
+    elif vecEqual(p2c, p2) and vecEqual(p3c, p3):
+        return [ p1a, p2, p3 ], [ p1a, p3, p1b ]
+    return [ p1, p2, p3 ], None                                         # should never happen, no clipping again
 
 def m3x3Identity():
     return np.eye(3)
