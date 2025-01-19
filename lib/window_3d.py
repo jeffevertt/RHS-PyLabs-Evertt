@@ -1,6 +1,7 @@
 import tkinter as tk
 from lib.window import Window
 from lib.utils import *
+from lib.utils_clipping import *
 
 # right handed, y up (z forward, x left)
 class Window3D(Window):
@@ -81,7 +82,7 @@ class Window3D(Window):
         posA = toScreenSpace @ v4(posA)
         posB = toScreenSpace @ v4(posB)
         posA /= (posA[3] if posA[3] != 0 else 0.0000001)
-        posB /= (posB[3] if posA[3] != 0 else 0.0000001)
+        posB /= (posB[3] if posB[3] != 0 else 0.0000001)
         posA, posB = clipLineAgainstNearPlaneNDC(posA, posB)
         if posA is None or posB is None:
             return None, None

@@ -1,5 +1,6 @@
 from lib.winobj import WinObj
 from lib.utils import *
+from lib.utils_clipping import *
 
 class Tri3D(WinObj):
     def __init__(self, window, posA, posB, posC, color = "blue"): #todo: add cull(true/false: true CCW)
