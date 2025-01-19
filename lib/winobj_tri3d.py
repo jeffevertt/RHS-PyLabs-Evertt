@@ -29,15 +29,24 @@ class Tri3D(WinObj):
             self.window.canvas.delete(self.gfxTri)
             self.gfxTri = None
     def updateGfx(self):
-        # transform and clip (from 3D world space to normalized device coords, NDC)
-        toScreenSpace = self.window.transProj @ self.window.transCamera
-        posA = toScreenSpace @ v4(self.posA)
-        posA /= (posA[3] if posA[3] != 0 else 0.0000001)
-        posB = toScreenSpace @ v4(self.posB)
-        posB /= (posB[3] if posB[3] != 0 else 0.0000001)
-        posC = toScreenSpace @ v4(self.posC)
-        posC /= (posC[3] if posC[3] != 0 else 0.0000001)
-        poly = clipTriAgainstNearPlaneNDC(posA, posB, posC)
+        poly = None
+        
+        # transform and clip (from 3D world space to clip space, clip, then to NDC)
+        toClipSpace = self.window.transProj @ self.window.transCamera
+        posA = toClipSpace @ v4(self.posA)
+        posB = toClipSpace @ v4(self.posB)
+        posC = toClipSpace @ v4(self.posC)
+        
+        # first, cull all non CCW (do this in clip space)
+        if isTriWindingCCW(posA, posB, posC) or True:
+            # clip tri to a poly (this may add verts)
+            poly = clipTri(posA, posB, posC)
+
+            # to NDC (perspective divide)
+            if poly is not None:
+                for vert in poly:
+                    vert /= (vert[3] if vert[3] != 0 else 0.0000001)
+        
         # update the tris
         if self.gfxTri != None:
             if poly is None:

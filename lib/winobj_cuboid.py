@@ -44,7 +44,7 @@ class Cuboid(WinObj):
         verts = self.calcVerts()
         
         self.tris.append( (Tri3D(self.window, verts[0], verts[1], verts[2], self.color),0,1,2) ) # bottom
-        self.tris.append( (Tri3D(self.window, verts[0], verts[2], verts[3], self.color),0,2,3) )
+        #self.tris.append( (Tri3D(self.window, verts[0], verts[2], verts[3], self.color),0,2,3) )
         
         self.lines.append( (Line(self.window, verts[0], verts[1], "black"),0,1) ) # bottom
         self.lines.append( (Line(self.window, verts[1], verts[2], "black"),1,2) )

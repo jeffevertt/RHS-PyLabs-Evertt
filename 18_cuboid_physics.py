@@ -7,7 +7,7 @@ from typing import List
 
 def setupLevel(window):
     # ground plane
-    Plane( window, v3(0, -10, 0), v3_up(), color = "darkgreen" )
+    #Plane( window, v3(0, -10, 0), v3_up(), color = "darkgreen" )
     
     # cuboid
     Cuboid( window, v3(0, 0, 0), v3(10, 10, 10) )
