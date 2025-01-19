@@ -3,7 +3,7 @@ from lib.winobj_tri3d import Tri3D
 from lib.utils import *
 
 class Plane(WinObj):
-    HALF_DIMS = 500
+    HALF_DIMS = 50
     
     def __init__(self, window, pos, normal, color = "darkgreen"):
         super().__init__(window, pos)
@@ -36,9 +36,9 @@ class Plane(WinObj):
         self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
                                              self.pos + basX * -Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
                                              self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS) )
-        self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS) )
+        # self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
+        #                                      self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
+        #                                      self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS) )
         
     def updateGeo(self):
         # called when one of the transforms changed (like the camera) or pos change...update 3d -> 2d (pass on to tris)

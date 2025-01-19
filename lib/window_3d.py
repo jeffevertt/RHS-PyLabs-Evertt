@@ -80,8 +80,8 @@ class Window3D(Window):
         toScreenSpace = self.transProj @ self.transCamera @ modelToWorld
         posA = toScreenSpace @ v4(posA)
         posB = toScreenSpace @ v4(posB)
-        posA /= posA[3]
-        posB /= posB[3]
+        posA /= (posA[3] if posA[3] != 0 else 0.0000001)
+        posB /= (posB[3] if posA[3] != 0 else 0.0000001)
         posA, posB = clipLineAgainstNearPlaneNDC(posA, posB)
         if posA is None or posB is None:
             return None, None

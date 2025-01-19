@@ -35,7 +35,7 @@ class Line(WinObj):
                 self.window.canvas.itemconfigure(self.gfxLine, state = "normal")
                 self.window.canvas.coords(self.gfxLine, self.window.toPixelsX(self.posA[0]), self.window.toPixelsY(self.posA[1]), 
                                                         self.window.toPixelsX(self.posB[0]), self.window.toPixelsY(self.posB[1]))
-        
+    
     def updateLinePositions(self, posA, posB):
         self.posA = posA
         self.posB = posB

@@ -2,6 +2,7 @@ import tkinter as tk
 from lib.window import Window
 from lib.window_3d import Window3D
 from lib.winobj_plane import Plane
+from lib.winobj_cuboid import Cuboid
 from lib.utils import *
 
 class WindowPhysics3D(Window3D):
@@ -25,7 +26,9 @@ class WindowPhysics3D(Window3D):
         planes = self.sim.objectsOfType(Plane)
         for plane in planes:
             plane.updateGeo()
-        # TODO: Cuboids
+        cuboids = self.sim.objectsOfType(Cuboid)
+        for cuboid in cuboids:
+            cuboid.updateGeo()
             
     def update(self, deltaTime):
         super().update(deltaTime)
