@@ -44,7 +44,22 @@ class Cuboid(WinObj):
         verts = self.calcVerts()
         
         self.tris.append( (Tri3D(self.window, verts[0], verts[1], verts[2], self.color),0,1,2) ) # bottom
-        #self.tris.append( (Tri3D(self.window, verts[0], verts[2], verts[3], self.color),0,2,3) )
+        self.tris.append( (Tri3D(self.window, verts[0], verts[2], verts[3], self.color),0,2,3) )
+        
+        self.tris.append( (Tri3D(self.window, verts[6], verts[5], verts[4], self.color),6,5,4) ) # top
+        self.tris.append( (Tri3D(self.window, verts[7], verts[6], verts[4], self.color),7,6,4) )
+
+        self.tris.append( (Tri3D(self.window, verts[7], verts[4], verts[0], self.color),7,4,0) ) # front
+        self.tris.append( (Tri3D(self.window, verts[7], verts[0], verts[3], self.color),7,0,3) )
+
+        self.tris.append( (Tri3D(self.window, verts[1], verts[5], verts[6], self.color),1,5,6) ) # back
+        self.tris.append( (Tri3D(self.window, verts[1], verts[6], verts[2], self.color),1,6,2) )
+
+        self.tris.append( (Tri3D(self.window, verts[6], verts[7], verts[3], self.color),6,7,3) ) # right
+        self.tris.append( (Tri3D(self.window, verts[6], verts[3], verts[2], self.color),6,3,2) )
+
+        self.tris.append( (Tri3D(self.window, verts[4], verts[5], verts[1], self.color),4,5,1) ) # left
+        self.tris.append( (Tri3D(self.window, verts[4], verts[1], verts[0], self.color),4,1,0) )
         
         self.lines.append( (Line(self.window, verts[0], verts[1], "black"),0,1) ) # bottom
         self.lines.append( (Line(self.window, verts[1], verts[2], "black"),1,2) )

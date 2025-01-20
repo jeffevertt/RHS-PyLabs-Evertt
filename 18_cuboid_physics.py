@@ -7,10 +7,10 @@ from typing import List
 
 def setupLevel(window):
     # ground plane
-    #Plane( window, v3(0, -10, 0), v3_up(), color = "darkgreen" )
+    Plane( window, v3(0, -10, 0), v3_up(), color = "green" )
     
     # cuboid
-    Cuboid( window, v3(0, 0, 0), v3(10, 10, 10) )
+    Cuboid( window, v3(0, 0, 0), v3(10, 10, 10), color = "#8A2BE2" )
 
 def updateLevel(window, deltaTime):
     pass

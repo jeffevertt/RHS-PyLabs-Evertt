@@ -35,10 +35,10 @@ class Plane(WinObj):
         basZ = self.basisZ()
         self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
                                              self.pos + basX * -Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS) )
+                                             self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS, color = self.color) )
         self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
                                              self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS) )
+                                             self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS, color = self.color) )
         
     def updateGeo(self):
         # called when one of the transforms changed (like the camera) or pos change...update 3d -> 2d (pass on to tris)
