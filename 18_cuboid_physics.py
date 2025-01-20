@@ -7,10 +7,11 @@ from typing import List
 
 def setupLevel(window):
     # ground plane
-    Plane( window, v3(0, -10, 0), v3_up(), color = "green" )
+    plane = Plane( window, v3(0, -10, 0), v3_up(), color = "green" )
     
     # cuboid
-    Cuboid( window, v3(0, 0, 0), v3(10, 10, 10), color = "#8A2BE2" )
+    cuboid = Cuboid( window, v3(0, 20, 0), v3(10, 10, 10), color = "#8A2BE2", vel = v3(10,20,0), velAng=(0,0,2) )
+    cuboid.setCollisionPlane(plane)
 
 def updateLevel(window, deltaTime):
     pass
@@ -20,6 +21,6 @@ def updateLevel(window, deltaTime):
 ########################## EXCEPT TO REMOVE TUTORIAL GAME CONFIG ARGUMENT  #########################
 ####################################################################################################
 WindowPhysics3D("Lab 18: Cuboid Physics!", 
-                cameraPos = v3(0,0,-30),
+                cameraPos = v3(0,0,-50),
                 setupLevelFn = setupLevel,
                 updateLevelFn = updateLevel).runGameLoop()

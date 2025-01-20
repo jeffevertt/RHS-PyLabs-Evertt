@@ -232,6 +232,8 @@ def m3x3Identity():
     return np.eye(3)
 def m3x3Transpose(m3x3):
     return m3x3.T
+def m3x3Inverse(m3x3):
+    return np.linalg.inv(m3x3)
 def m3x3RotX(angleDeg):
 	return np.array([[1, 0, 0], 
                      [0, math.cos(math.radians(angleDeg)), -math.sin(math.radians(angleDeg))], 
@@ -256,6 +258,11 @@ def m3x3LookAt(forward, up = v3_up()):
     return np.array([[right[0], right[1], right[2]], 
                      [up[0], up[1], up[2]], 
                      [forward[0], forward[1], forward[2]]])
+def m3x3Diag(diag):
+    return np.diag(diag)
+def m3x3OrthoNormalize(m3x3):
+    q, r = np.linalg.qr(m3x3)
+    return q
     
 def m4x4Identity():
     return np.eye(4)

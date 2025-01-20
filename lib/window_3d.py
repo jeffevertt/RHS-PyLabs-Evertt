@@ -12,7 +12,7 @@ class Window3D(Window):
         
     def initApp(self):
         super().initApp()
-
+        
         # transforms
         self.cameraFovVert_fullDeg = 100
         self.setCameraTransform( m3x3Identity(), v3(0,0,0.01) )
@@ -20,6 +20,7 @@ class Window3D(Window):
         
         # member vars
         self.cameraRotatedViaMouse = False
+        self.gravity = v3(0, -9.8, 0)
     
     def getCameraPos(self):
         return self.cameraPos
