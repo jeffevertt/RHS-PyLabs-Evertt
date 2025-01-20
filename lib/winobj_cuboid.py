@@ -5,7 +5,7 @@ from lib.winobj_plane import Plane
 from lib.utils import *
 
 class Cuboid(WinObj):
-    def __init__(self, window, pos, halfDims, mass = 100, vel = v3_zero(), velAng = v3_zero(), orient = m3x3Identity(), color = "darkseagreen"):
+    def __init__(self, window, pos, halfDims, mass = 100, vel = v3_zero(), velAng = v3_zero(), orient = m3x3Identity(), restitution = 0.66, color = "darkseagreen"):
         super().__init__(window, pos, vel = vel)
         self.halfDims = halfDims
         self.orient = orient
@@ -14,6 +14,7 @@ class Cuboid(WinObj):
         
         # physics
         self.mass = mass
+        self.restitution = restitution
         self.inertiaTensor = self.calcInertiaTensor()
         self.velAng = velAng    # radians per second
         self.collisionPlane = None
@@ -40,10 +41,11 @@ class Cuboid(WinObj):
         return m4x4ModelToWorld(self.orient, self.pos)
     
     def calcInertiaTensor(self):
-        fullDims = self.halfDims * 2
-        return m3x3Diag( v3(1/12.0 * self.mass * (fullDims[1]**2 + fullDims[2]**2),
-                            1/12.0 * self.mass * (fullDims[0]**2 + fullDims[2]**2),
-                            1/12.0 * self.mass * (fullDims[0]**2 + fullDims[1]**2)) )
+        return m3x3Diag( v3(1/3.0 * self.mass * (self.halfDims[1]**2 + self.halfDims[2]**2),  # note: using half distance, so 1/3 instead of 1/12 scalars
+                            1/3.0 * self.mass * (self.halfDims[0]**2 + self.halfDims[2]**2),
+                            1/3.0 * self.mass * (self.halfDims[0]**2 + self.halfDims[1]**2)) )
+    def calcInertiaTensor_worldSpace(self):
+        return self.orient @ self.inertiaTensor @ m3x3Transpose(self.orient)
     def calcSkewSymMatrix(self): # this is basically the angular veocity, in matrix form
         return np.array([[              0, -self.velAng[2],  self.velAng[1]],
                          [ self.velAng[2],               0, -self.velAng[0]],
@@ -112,16 +114,6 @@ class Cuboid(WinObj):
         for line in self.lines:
             line[0].updateLinePositions( *self.window.transformAndClipLine(verts[line[1]], verts[line[2]], modelToWorld) )
     
-    def applyTorque(self, force, atPt, deltaTime):
-        # figure out the torque when the force is applied at the specified point
-        r = atPt - self.pos
-        torque = cross(r, force)
-        modelToWorld = self.modelToWorld()
-        
-        # angular acceleration is torque transformed by the inverse of the world space inertia tensor
-        inertiaTensorWorldSpace = self.orient @ self.inertiaTensor @ m3x3Transpose(self.orient)
-        accAng = m3x3Inverse(inertiaTensorWorldSpace) @ torque
-        self.velAng += accAng # * deltaTime
     def updateCollisionWithPlane(self, plane :Plane, deltaTime):
         # setup
         planePos = plane.pos
@@ -137,18 +129,33 @@ class Cuboid(WinObj):
             if dst >= 0:
                 continue
             
-            # figure how far we need to push it out
+            # figure how far we need to push it out & the relative offset in world space (r)
             maxPen = max(maxPen, -dst)
+            r = vert - self.pos
+
+# TODO            
+# - Implement a more robust collision detection system.
+# - Handle frictional forces.
+# - Consider more complex contact constraints (e.g., resting contact).
+# - Add lighting to the cuboid faces
             
-            # Calculate relative velocity at contact point
-            relVel = self.vel + cross(self.velAng, vert - self.pos)
+            # velocity at contact point (vert)
+            velAtVert = self.vel + cross(self.velAng, r)
+            velAtVert_desired = -velAtVert * self.restitution
+            
+            # compute impulse (usually denoted as J), broken into linear and angular components
+            percLin = max(dot(unit(r), unit(velAtVert)), 0.2)
+            percAng = 1 - percLin
+            impulseLin = (velAtVert_desired - velAtVert) * percLin
+            impulseAng = (velAtVert_desired - velAtVert) * percAng
 
-            # Calculate normal impulse
-            restitution = 0.5
-            impulse = -(1 + restitution) * dot(relVel, plane.normal) * plane.normal 
+            # linear acceleration
+            self.vel += impulseLin / self.mass
 
-            # apply torque at the point
-            self.applyTorque(impulse, vert, deltaTime)
+            # angular acceleration (this is torque transformed by the inverse of the world space inertia tensor)
+            torque = cross(r, impulseAng)
+            accAng = m3x3Inverse(self.calcInertiaTensor_worldSpace()) @ torque
+            self.velAng += accAng # / deltaTime
 
         # push it out along the plane normal
         self.pos += planeNormal * maxPen
