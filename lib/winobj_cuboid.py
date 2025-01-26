@@ -165,7 +165,7 @@ class Cuboid(WinObj):
         self.vel += self.window.gravity * deltaTime
         self.pos += self.vel * deltaTime
         
-        # angular motion
+        # angular motion ( dRdt = [wx] R...skew symmetric matrix, multiplied by the orientation, note that this would be different for quaternions )
         skewSymMatrix = self.calcSkewSymMatrix()
         dRdt = skewSymMatrix @ self.orient
         self.orient += dRdt * deltaTime
