@@ -10,6 +10,7 @@ class Plane(WinObj):
         self.posInitial = self.pos
         self.normal = unit(normal)
         self.color = color
+        self.colorInitialHex = colorNamedToHex(self.color)
         self.window.sim.onCreated(self)
         self.tris = []
         self.createTris()
@@ -46,6 +47,8 @@ class Plane(WinObj):
         self.tris[1].updateTriPositions(self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
                                         self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
                                         self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS)
+        self.tris[0].calcColorFromCamLighting( self.colorInitialHex, "#336633" )
+        self.tris[1].calcColorFromCamLighting( self.colorInitialHex, "#336633" )
         
     def updateGeo(self, updateTris = False):
         # if requested, update the tri positions (so the 3d positions, not just the projected 2d ones)

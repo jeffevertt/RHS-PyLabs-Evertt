@@ -115,10 +115,8 @@ class Cuboid(WinObj):
         modelToWorld = self.modelToWorld()
         for tri in self.tris:
             vertsWS = ( modelToWorld @ v4(verts[tri[1]]), modelToWorld @ v4(verts[tri[2]]), modelToWorld @ v4(verts[tri[3]]) )
-            faceNormal = unit( cross(v3_from_v4(vertsWS[1] - vertsWS[0]), v3_from_v4(vertsWS[2] - vertsWS[0])) )
-            brightness = max(dot(self.window.getCameraForward(), -faceNormal), 0.2) # do lighting vs camera forward
-            color = colorHexLerp( "#222222", self.colorInitialHex, brightness )
-            tri[0].updateTriPositions( vertsWS[0], vertsWS[1], vertsWS[2], color )
+            tri[0].updateTriPositions( vertsWS[0], vertsWS[1], vertsWS[2] )
+            tri[0].calcColorFromCamLighting( self.colorInitialHex )
         for line in self.lines:
             line[0].updateLinePositions( *self.window.transformAndClipLine(verts[line[1]], verts[line[2]], modelToWorld) )
     

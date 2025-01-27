@@ -66,12 +66,16 @@ class Tri3D(WinObj):
             else:
                 self.window.canvas.itemconfigure(self.gfxTri, state = "normal", fill = self.color)
                 self.window.canvas.coords(self.gfxTri, poly2d)
-        
-    def updateTriPositions(self, posA, posB, posC, color = None):
+    
+    def updateTriPositions(self, posA, posB, posC):
         self.posA = v3_from_v4(posA)
         self.posB = v3_from_v4(posB)
         self.posC = v3_from_v4(posC)
-        self.color = color if color is not None else self.color
+        self.updateGfx()
+    def calcColorFromCamLighting(self, colorDiffuseHex, minColor = "#222222"):
+        faceNormal = unit( cross(self.posB - self.posA, self.posC - self.posA) )
+        brightness = max(dot(self.window.getCameraForward(), -faceNormal), 0.2)
+        self.color = colorHexLerp( minColor, colorDiffuseHex, brightness )
         self.updateGfx()
     
     def update(self, deltaTime):
