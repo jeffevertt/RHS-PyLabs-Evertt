@@ -5,12 +5,13 @@ from lib.winobj_plane import Plane
 from lib.utils import *
 
 class Cuboid(WinObj):
-    def __init__(self, window, pos, halfDims, mass = 100, vel = v3_zero(), velAng = v3_zero(), orient = m3x3Identity(), restitution = 0.33, color = "darkseagreen"):
+    def __init__(self, window, pos, halfDims, mass = 100, vel = v3_zero(), velAng = v3_zero(), orient = m3x3Identity(), restitution = 0.33, color = "darkseagreen", lineWidth = 2):
         super().__init__(window, pos, vel = vel)
         self.halfDims = halfDims
         self.orient = orient
         self.color = color
         self.colorInitialHex = colorNamedToHex(self.color)
+        self.lineWidth = lineWidth
         self.window.sim.onCreated(self)
         
         # physics
@@ -91,20 +92,20 @@ class Cuboid(WinObj):
         self.tris.append( (Tri3D(self.window, verts[4], verts[5], verts[1], self.color),4,5,1) ) # left
         self.tris.append( (Tri3D(self.window, verts[4], verts[1], verts[0], self.color),4,1,0) )
         
-        self.lines.append( (Line(self.window, verts[0], verts[1], "black"),0,1) ) # bottom
-        self.lines.append( (Line(self.window, verts[1], verts[2], "black"),1,2) )
-        self.lines.append( (Line(self.window, verts[2], verts[3], "black"),2,3) )
-        self.lines.append( (Line(self.window, verts[3], verts[0], "black"),3,0) )
+        self.lines.append( (Line(self.window, verts[0], verts[1], "black", width = self.lineWidth),0,1) ) # bottom
+        self.lines.append( (Line(self.window, verts[1], verts[2], "black", width = self.lineWidth),1,2) )
+        self.lines.append( (Line(self.window, verts[2], verts[3], "black", width = self.lineWidth),2,3) )
+        self.lines.append( (Line(self.window, verts[3], verts[0], "black", width = self.lineWidth),3,0) )
         
-        self.lines.append( (Line(self.window, verts[4], verts[5], "black"),4,5) ) # top
-        self.lines.append( (Line(self.window, verts[5], verts[6], "black"),5,6) )
-        self.lines.append( (Line(self.window, verts[6], verts[7], "black"),6,7) )
-        self.lines.append( (Line(self.window, verts[7], verts[4], "black"),7,4) )
+        self.lines.append( (Line(self.window, verts[4], verts[5], "black", width = self.lineWidth),4,5) ) # top
+        self.lines.append( (Line(self.window, verts[5], verts[6], "black", width = self.lineWidth),5,6) )
+        self.lines.append( (Line(self.window, verts[6], verts[7], "black", width = self.lineWidth),6,7) )
+        self.lines.append( (Line(self.window, verts[7], verts[4], "black", width = self.lineWidth),7,4) )
 
-        self.lines.append( (Line(self.window, verts[0], verts[4], "black"),0,4) ) # vert sides
-        self.lines.append( (Line(self.window, verts[1], verts[5], "black"),1,5) )
-        self.lines.append( (Line(self.window, verts[2], verts[6], "black"),2,6) )
-        self.lines.append( (Line(self.window, verts[3], verts[7], "black"),3,7) )
+        self.lines.append( (Line(self.window, verts[0], verts[4], "black", width = self.lineWidth),0,4) ) # vert sides
+        self.lines.append( (Line(self.window, verts[1], verts[5], "black", width = self.lineWidth),1,5) )
+        self.lines.append( (Line(self.window, verts[2], verts[6], "black", width = self.lineWidth),2,6) )
+        self.lines.append( (Line(self.window, verts[3], verts[7], "black", width = self.lineWidth),3,7) )
         
         self.updateGeo()
         

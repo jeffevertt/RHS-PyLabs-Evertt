@@ -265,7 +265,12 @@ def m3x3LookAt(forward, up = v3_up()):
 def m3x3Diag(diag):
     return np.diag(diag)
 def m3x3OrthoNormalize(m3x3):
+    # QR Decomp (rather than Gram-Schmidt)
     q, r = np.linalg.qr(m3x3)
+    # Can invert an axis, so deal with that
+    det_q = np.linalg.det(q)
+    if det_q < 0:
+        q[:, 2] *= -1  # Invert the z-axis
     return q
     
 def m4x4Identity():

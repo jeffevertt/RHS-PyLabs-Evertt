@@ -2,12 +2,13 @@ from lib.winobj import WinObj
 from lib.utils import *
 
 class Line(WinObj):
-    def __init__(self, window, posA, posB, color = "blue"):
+    def __init__(self, window, posA, posB, color = "blue", width = 4):
         self.posA = posA
         self.posB = posB
         posCenter = (posA + posB) / 2
         super().__init__(window, posCenter)
         self.color = color
+        self.width = width
         self.window.sim.onCreated(self)
         self.createGfx()
             
@@ -22,7 +23,7 @@ class Line(WinObj):
     def createGfx(self):
         self.gfxLine = self.window.canvas.create_line(self.window.toPixelsX(self.posA[0]), self.window.toPixelsY(self.posA[1]), 
                                                       self.window.toPixelsX(self.posB[0]), self.window.toPixelsY(self.posB[1]), 
-                                                      fill = self.color, width = 4)
+                                                      fill = self.color, width = self.width)
     def destroyGfx(self):
         if self.gfxLine != None:
             self.window.canvas.delete(self.gfxLine)

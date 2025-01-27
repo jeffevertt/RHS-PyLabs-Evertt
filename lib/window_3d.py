@@ -7,14 +7,14 @@ from lib.utils_clipping import *
 class Window3D(Window):
     NEAR_CLIP_DST = 0.1
     
-    def __init__(self, title, canvasColor = '#F4EAD7'):
+    def __init__(self, title, canvasColor = '#F4EAD7', cameraFovVert_fullDeg = 90):
+        self.cameraFovVert_fullDeg = cameraFovVert_fullDeg
         super().__init__(title, gridEnable = False, canvasColor = canvasColor)
         
     def initApp(self):
         super().initApp()
         
         # transforms
-        self.cameraFovVert_fullDeg = 100
         self.setCameraTransform( m3x3Identity(), v3(0,0,0.01) )
         self.transProj = m4x4Proj(self.cameraFovVert_fullDeg, aspectWoverH = self.width / self.height, clipNear = Window3D.NEAR_CLIP_DST)
         

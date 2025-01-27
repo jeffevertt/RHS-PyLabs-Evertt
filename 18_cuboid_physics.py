@@ -15,7 +15,7 @@ def setupLevel(window):
     plane = Plane( window, v3(0, -10, 0), v3_up(), color = "green" )
     
     # cuboid
-    cuboid = Cuboid( window, v3(0, 20, 0), v3(10, 10, 10), color = "#8A2BE2", vel = v3(10,20,0), velAng = v3(0,0,2) )
+    cuboid = Cuboid( window, v3(0, 20, 0), v3(10, 10, 10), color = "#8A2BE2", vel = v3(2,15,0), velAng = v3(0,0,2) )
     cuboid.setCollisionPlane(plane)
 
 def updateLevel(window, deltaTime):
