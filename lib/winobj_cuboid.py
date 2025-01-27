@@ -5,7 +5,7 @@ from lib.winobj_plane import Plane
 from lib.utils import *
 
 class Cuboid(WinObj):
-    def __init__(self, window, pos, halfDims, mass = 100, vel = v3_zero(), velAng = v3_zero(), orient = m3x3Identity(), restitution = 0.66, color = "darkseagreen"):
+    def __init__(self, window, pos, halfDims, mass = 100, vel = v3_zero(), velAng = v3_zero(), orient = m3x3Identity(), restitution = 0.33, color = "darkseagreen"):
         super().__init__(window, pos, vel = vel)
         self.halfDims = halfDims
         self.orient = orient
@@ -114,17 +114,15 @@ class Cuboid(WinObj):
         for line in self.lines:
             line[0].updateLinePositions( *self.window.transformAndClipLine(verts[line[1]], verts[line[2]], modelToWorld) )
     
-    def updateCollisionWithPlane(self, plane :Plane, deltaTime):
+    def updateCollisionWithPlane_basicMethod(self, plane :Plane, deltaTime):
         # setup
         planePos = plane.pos
         planeNormal = plane.basisY()
-
-        # verts in WS
-        verts = self.calcVerts_worldSpace()
+        cuboidVerts = self.calcVerts_worldSpace()
         
         # per vert distance & response
         maxPen = 0
-        for vert in verts:
+        for vert in cuboidVerts:
             dst = dot(vert - planePos, planeNormal)
             if dst >= 0:
                 continue
@@ -133,12 +131,6 @@ class Cuboid(WinObj):
             maxPen = max(maxPen, -dst)
             r = vert - self.pos
 
-# TODO            
-# - Implement a more robust collision detection system.
-# - Handle frictional forces.
-# - Consider more complex contact constraints (e.g., resting contact).
-# - Add lighting to the cuboid faces
-            
             # velocity at contact point (vert)
             velAtVert = self.vel + cross(self.velAng, r)
             velAtVert_desired = -velAtVert * self.restitution
@@ -160,7 +152,50 @@ class Cuboid(WinObj):
         # push it out along the plane normal
         self.pos += planeNormal * maxPen
 
-    def updatePhysics(self, deltaTime):
+    def updateCollisionWithPlane_newtonianMethod_contactPt(self, contactPt, planeNormal, deltaTime):
+        # calc the force vector at this contact point based on 
+        r = contactPt - self.pos
+        n = planeNormal
+        va = self.vel
+        wa = self.velAng
+        i = self.calcInertiaTensor_worldSpace()
+        iInv = m3x3Inverse(i)
+
+        # calc the force at the contact point
+        f_num = -(1 + self.restitution) * (dot(n, va) + dot(wa, cross(r, n)))
+        f_den = (1/self.mass) + cross(r, n).T @ iInv @ cross(r, n)
+        f = f_num / f_den
+
+        # update velocities based on force
+        self.vel = self.vel + f * n / self.mass
+        self.velAng = self.velAng + iInv @ cross(r, f * n)
+        
+    def updateCollisionWithPlane_newtonianMethod(self, plane :Plane, deltaTime):
+        # calc contact points
+        planePos = plane.pos
+        planeNormal = plane.basisY()
+        cuboidVerts = self.calcVerts_worldSpace()
+        
+        # per vert distance & response
+        maxPen = 0
+        for vert in cuboidVerts:
+            dst = dot(vert - planePos, planeNormal)
+            if dst >= 0:
+                continue
+            maxPen = max(maxPen, -dst)
+            
+            # deal with each contact point, one by one
+            self.updateCollisionWithPlane_newtonianMethod_contactPt(vert, planeNormal, deltaTime)
+
+        # push it out along the plane normal
+        self.pos += planeNormal * maxPen
+
+        # friction
+        if maxPen > 0:
+            self.vel *= max(1 - deltaTime * 5, 0.9)
+            self.velAng *= max(1 - deltaTime * 1, 0.9)
+        
+    def updatePhysics_subStep(self, deltaTime):
         # linear motion
         self.vel += self.window.gravity * deltaTime
         self.pos += self.vel * deltaTime
@@ -175,9 +210,16 @@ class Cuboid(WinObj):
         
         # collision (with plane)
         if self.collisionPlane is not None:
-            self.updateCollisionWithPlane(self.collisionPlane, deltaTime)
+            self.updateCollisionWithPlane_newtonianMethod(self.collisionPlane, deltaTime)
         
         return True # indicate that we need to update geo
+    
+    def updatePhysics(self, deltaTime):
+        # Sub-steps to improve precision
+        subStepCount = 20
+        deltaTime_subStep = deltaTime / subStepCount
+        for subStep in range(subStepCount):
+            self.updatePhysics_subStep(deltaTime_subStep)
     
     def update(self, deltaTime):
         super().update(deltaTime)

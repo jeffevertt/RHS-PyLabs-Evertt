@@ -28,6 +28,10 @@ class Simulation:
     def countObjectsOfType(self, type):
         return len([obj for obj in self.objects if isinstance(obj, type)])
     
+    def firstObjectOfType(self, type):
+        objs = self.objectsOfType(type)
+        return objs[0] if len(objs) > 0 else None
+    
     def updateGfxAllObjects(self):
         for obj in self.objects:
             obj.updateGfx()

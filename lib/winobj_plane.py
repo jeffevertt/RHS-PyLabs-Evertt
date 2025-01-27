@@ -31,16 +31,25 @@ class Plane(WinObj):
         return cross( self.basisX(), self.basisY() )
     
     def createTris(self):
+        self.tris.append( Tri3D(self.window, self.pos, self.pos, self.pos, color = self.color) )
+        self.tris.append( Tri3D(self.window, self.pos, self.pos, self.pos, color = self.color) )
+        self.updateTris()
+    def updateTris(self):
+        if len(self.tris) < 2:
+            return
         basX = self.basisX()
         basZ = self.basisZ()
-        self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
-                                             self.pos + basX * -Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS, color = self.color) )
-        self.tris.append( Tri3D(self.window, self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
-                                             self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS, color = self.color) )
+        self.tris[0].updateTriPositions(self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
+                                        self.pos + basX * -Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
+                                        self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS)
+        self.tris[1].updateTriPositions(self.pos + basX * -Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS,
+                                        self.pos + basX *  Plane.HALF_DIMS + basZ *  Plane.HALF_DIMS,
+                                        self.pos + basX *  Plane.HALF_DIMS + basZ * -Plane.HALF_DIMS)
         
-    def updateGeo(self):
+    def updateGeo(self, updateTris = False):
+        # if requested, update the tri positions (so the 3d positions, not just the projected 2d ones)
+        if updateTris:
+            self.updateTris()
         # called when one of the transforms changed (like the camera) or pos change...update 3d -> 2d (pass on to tris)
         for tri in self.tris:
             tri.updateGfx()

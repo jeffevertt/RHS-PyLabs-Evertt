@@ -14,7 +14,13 @@ def setupLevel(window):
     cuboid.setCollisionPlane(plane)
 
 def updateLevel(window, deltaTime):
-    pass
+    # get the objects
+    plane = window.sim.firstObjectOfType(Plane)
+    cuboid = window.sim.firstObjectOfType(Cuboid)
+
+    # keep the plane under the cuboid
+    plane.pos = v3(cuboid.pos[0], plane.pos[1], cuboid.pos[2])
+    plane.updateGeo(updateTris = True)
 
 ####################################################################################################
 ############################## DO NOT MODIFY  METHODS BELOW THIS LINE ##############################
