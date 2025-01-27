@@ -46,7 +46,9 @@ class Tri3D(WinObj):
         poly = clipTriAgainstNearPlaneNDC(posA, posB, posC)
         
         # first, do backface cull
-        if poly is not None and len(poly) > 2 and not isBackfaceCulledNDC(poly):
+        if poly is None or len(poly) < 3 or isBackfaceCulledNDC(poly):
+            poly2d = None
+        else:
             # convert to screen space
             poly2d = [] if poly is not None else None
             if poly2d is not None:
@@ -59,16 +61,17 @@ class Tri3D(WinObj):
 
         # update the tris
         if self.gfxTri != None:
-            if poly2d is None or len(poly2d) == 0:
+            if poly2d is None or len(poly2d) < 3:
                 self.window.canvas.itemconfigure(self.gfxTri, state = "hidden")
             else:
-                self.window.canvas.itemconfigure(self.gfxTri, state = "normal")
+                self.window.canvas.itemconfigure(self.gfxTri, state = "normal", fill = self.color)
                 self.window.canvas.coords(self.gfxTri, poly2d)
         
-    def updateTriPositions(self, posA, posB, posC):
+    def updateTriPositions(self, posA, posB, posC, color = None):
         self.posA = v3_from_v4(posA)
         self.posB = v3_from_v4(posB)
         self.posC = v3_from_v4(posC)
+        self.color = color if color is not None else self.color
         self.updateGfx()
     
     def update(self, deltaTime):

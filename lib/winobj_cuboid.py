@@ -10,6 +10,7 @@ class Cuboid(WinObj):
         self.halfDims = halfDims
         self.orient = orient
         self.color = color
+        self.colorInitialHex = colorNamedToHex(self.color)
         self.window.sim.onCreated(self)
         
         # physics
@@ -105,12 +106,18 @@ class Cuboid(WinObj):
         self.lines.append( (Line(self.window, verts[2], verts[6], "black"),2,6) )
         self.lines.append( (Line(self.window, verts[3], verts[7], "black"),3,7) )
         
+        self.updateGeo()
+        
     def updateGeo(self):
         # called when one of the transforms changed (like the camera) or pos change...update 3d -> 2d (pass on to tris & lines)
         verts = self.calcVerts_modelSpace()
         modelToWorld = self.modelToWorld()
         for tri in self.tris:
-            tri[0].updateTriPositions( modelToWorld @ v4(verts[tri[1]]), modelToWorld @ v4(verts[tri[2]]), modelToWorld @ v4(verts[tri[3]]) )
+            vertsWS = ( modelToWorld @ v4(verts[tri[1]]), modelToWorld @ v4(verts[tri[2]]), modelToWorld @ v4(verts[tri[3]]) )
+            faceNormal = unit( cross(v3_from_v4(vertsWS[1] - vertsWS[0]), v3_from_v4(vertsWS[2] - vertsWS[0])) )
+            brightness = max(dot(self.window.getCameraForward(), -faceNormal), 0.2) # do lighting vs camera forward
+            color = colorHexLerp( "#222222", self.colorInitialHex, brightness )
+            tri[0].updateTriPositions( vertsWS[0], vertsWS[1], vertsWS[2], color )
         for line in self.lines:
             line[0].updateLinePositions( *self.window.transformAndClipLine(verts[line[1]], verts[line[2]], modelToWorld) )
     
@@ -152,17 +159,18 @@ class Cuboid(WinObj):
         # push it out along the plane normal
         self.pos += planeNormal * maxPen
 
-    def updateCollisionWithPlane_newtonianMethod_contactPt(self, contactPt, planeNormal, deltaTime):
+    def updateCollisionWithPlane_newtonianMethod_contactPt(self, contactPt, plane, deltaTime):
         # calc the force vector at this contact point based on 
         r = contactPt - self.pos
-        n = planeNormal
+        n = plane.basisY()
         va = self.vel
         wa = self.velAng
+        vb = plane.vel
         i = self.calcInertiaTensor_worldSpace()
         iInv = m3x3Inverse(i)
 
         # calc the force at the contact point
-        f_num = -(1 + self.restitution) * (dot(n, va) + dot(wa, cross(r, n)))
+        f_num = -(1 + self.restitution) * (dot(n, va - vb) + dot(wa, cross(r, n)))
         f_den = (1/self.mass) + cross(r, n).T @ iInv @ cross(r, n)
         f = f_num / f_den
 
@@ -185,7 +193,7 @@ class Cuboid(WinObj):
             maxPen = max(maxPen, -dst)
             
             # deal with each contact point, one by one
-            self.updateCollisionWithPlane_newtonianMethod_contactPt(vert, planeNormal, deltaTime)
+            self.updateCollisionWithPlane_newtonianMethod_contactPt(vert, plane, deltaTime)
 
         # push it out along the plane normal
         self.pos += planeNormal * maxPen
@@ -210,6 +218,8 @@ class Cuboid(WinObj):
         
         # collision (with plane)
         if self.collisionPlane is not None:
+            # update with our preferred method (only one should be applied)
+            #self.updateCollisionWithPlane_basicMethod(self.collisionPlane, deltaTime)
             self.updateCollisionWithPlane_newtonianMethod(self.collisionPlane, deltaTime)
         
         return True # indicate that we need to update geo

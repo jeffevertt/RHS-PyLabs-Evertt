@@ -3,10 +3,11 @@ from lib.winobj_tri3d import Tri3D
 from lib.utils import *
 
 class Plane(WinObj):
-    HALF_DIMS = 100
+    HALF_DIMS = 200
     
     def __init__(self, window, pos, normal, color = "darkgreen"):
         super().__init__(window, pos)
+        self.posInitial = self.pos
         self.normal = unit(normal)
         self.color = color
         self.window.sim.onCreated(self)

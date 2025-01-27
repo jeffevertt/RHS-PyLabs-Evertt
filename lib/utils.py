@@ -86,6 +86,10 @@ def clampV3(value, minValue, maxValue):
 
 def lerp(a, b, t):
     return a + (b - a) * clamp(t, 0, 1)
+def easeInOut(t, factor = 4):
+    if t < 0.5:
+        return factor * t * t
+    return 1 - factor * (1 - t) * (1 - t)
 
 def sinDeg(angleDeg):
     return math.sin(math.radians(angleDeg))
@@ -136,7 +140,7 @@ def rotateVec2(v, angleDeg):
     return v2(v[0] * cos - v[1] * sin, v[0] * sin + v[1] * cos)
 
 def colorNamedToHex(colorNamed):
-    return name_to_hex(colorNamed)
+    return name_to_hex(colorNamed) if not colorNamed.startswith("#") else colorNamed
 def colorHexToRgb(colorHex):
     colorHex = colorHex.lstrip('#')
     return tuple(int(colorHex[i:i+2], 16) for i in (0, 2, 4))
