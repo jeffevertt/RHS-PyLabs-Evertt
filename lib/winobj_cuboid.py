@@ -17,7 +17,6 @@ class Cuboid(WinObj):
         # physics
         self.mass = mass
         self.restitution = restitution
-        self.inertiaTensor = self.calcInertiaTensor()
         self.velAng = velAng    # radians per second
         self.collisionPlane = None
 
@@ -42,12 +41,29 @@ class Cuboid(WinObj):
     def modelToWorld(self):
         return m4x4ModelToWorld(self.orient, self.pos)
     
+    def calcMassVector(self):
+        return v3(self.mass, self.mass, self.mass)
+    def calcMassVector_worldSpace(self):
+        return self.orient @ self.calcMassVector()
+    def calcMassVectorInverse_worldSpace(self):
+        v = self.calcMassVector_worldSpace()
+        return v3(1.0 / v[0], 1.0 / v[1], 1.0 / v[2])
+    def calcMassMatrix(self):
+        return m3x3Diag(self.mass, self.mass, self.mass)
+    def calcMassMatrixInverse(self):
+        return m3x3Diag(1.0 / self.mass, 1.0 / self.mass, 1.0 / self.mass)
+    def calcMassMatrixInverse_worldSpace(self):
+        return self.orient @ self.calcMassMatrixInverse()
     def calcInertiaTensor(self):
         return m3x3Diag( v3(1/3.0 * self.mass * (self.halfDims[1]**2 + self.halfDims[2]**2),  # note: using half distance, so 1/3 instead of 1/12 scalars
                             1/3.0 * self.mass * (self.halfDims[0]**2 + self.halfDims[2]**2),
                             1/3.0 * self.mass * (self.halfDims[0]**2 + self.halfDims[1]**2)) )
+    def calcInertiaTensorInverse(self):
+        return m3x3Inverse(self.calcInertiaTensor())
     def calcInertiaTensor_worldSpace(self):
-        return self.orient @ self.inertiaTensor @ m3x3Transpose(self.orient)
+        return self.orient @ self.calcInertiaTensor() @ m3x3Transpose(self.orient)
+    def calcInertiaTensorInverse_worldSpace(self):
+        return m3x3Inverse(self.calcInertiaTensor_worldSpace())
     def calcSkewSymMatrix(self): # this is basically the angular veocity, in matrix form
         return np.array([[              0, -self.velAng[2],  self.velAng[1]],
                          [ self.velAng[2],               0, -self.velAng[0]],
@@ -152,7 +168,7 @@ class Cuboid(WinObj):
 
             # angular acceleration (this is torque transformed by the inverse of the world space inertia tensor)
             torque = cross(r, impulseAng)
-            accAng = m3x3Inverse(self.calcInertiaTensor_worldSpace()) @ torque
+            accAng = self.calcInertiaTensorInverse_worldSpace() @ torque
             self.velAng += accAng # / deltaTime
 
         # push it out along the plane normal
@@ -165,8 +181,7 @@ class Cuboid(WinObj):
         va = self.vel
         wa = self.velAng
         vb = plane.vel
-        i = self.calcInertiaTensor_worldSpace()
-        iInv = m3x3Inverse(i)
+        iInv = self.calcInertiaTensorInverse_worldSpace()
 
         # calc the force at the contact point
         f_num = -(1 + self.restitution) * (dot(n, va - vb) + dot(wa, cross(r, n)))
@@ -201,6 +216,55 @@ class Cuboid(WinObj):
         if maxPen > 0:
             self.vel *= max(1 - deltaTime * 5, 0.9)
             self.velAng *= max(1 - deltaTime * 1, 0.9)
+            
+    def updateCollisionWithPlane_resolveVelocityConstraintsLagrange(self, plane :Plane, deltaTime):
+        # calc contact points
+        planePos = plane.pos
+        planeNormal = plane.basisY()
+        cuboidVerts = self.calcVerts_worldSpace()
+
+        # need to keep total lambda positive, sum(lambda) >= 0
+        lambdaTotal = 0.0
+        
+        # check each vert for penetration & deal with collision response
+        maxPen = 0
+        for vert in cuboidVerts:
+            dst = dot(vert - planePos, planeNormal)
+            if dst >= 0:
+                continue
+            maxPen = max(maxPen, -dst)
+
+            # overall equation (curr_velRel + result_velRel = 0): j v + b = 0
+            #  deltaV = v2 - v1 = M^-1 J^T lambda
+            #  mEff = (J M^-1 J^T)^-1
+            #  lambda = Meff (-(J V1 + b))
+            # contact point constraint: dot((Cb + rb - Ca - ra), n) >= 0
+            r = vert - self.pos
+            
+            # jacobian matrix (each of these is a row...each is a constraint). j converts generalized velocities into the space of the constraint (along the normal)
+            j_velLin = planeNormal
+            j_velAng = cross(r, planeNormal)
+            
+            k = (1 / self.mass) + dot(j_velAng, self.calcInertiaTensorInverse_worldSpace() @ j_velAng)
+            mEff = 1.0 / k
+            
+            jv = dot(j_velLin, self.vel) + dot(j_velAng, self.velAng)
+            
+            # Baumgarte stabilization (introduces force that counteracts deviations from constraints by using feedback feedback control)
+            beta = 1.0 # magic number (1 fully resolves overlap in a single frame, so 0 is no feedback)
+            relVelAtPt = self.vel + cross(self.velAng, r)
+            velClosing = dot(relVelAtPt, planeNormal)
+            b = (beta / deltaTime) * dst - self.restitution * velClosing
+            
+            # calc the multiplier and stabilize across frames
+            lamb = mEff * (-(jv + b))
+            lambdaTotalOld = lambdaTotal
+            lambdaTotal = max(0, lambdaTotal + lamb)    # sum(lambda) >= 0
+            lamb = lambdaTotal - lambdaTotalOld         # do this as you go, so future constraints use previous (within a frame)
+            
+            # apply solution to velocities
+            self.vel += (1 / self.mass) * j_velLin * lamb
+            self.velAng += self.calcInertiaTensorInverse_worldSpace() @ (j_velAng * lamb)
         
     def updatePhysics_subStep(self, deltaTime):
         # linear motion
@@ -219,7 +283,8 @@ class Cuboid(WinObj):
         if self.collisionPlane is not None:
             # update with our preferred method (only one should be applied)
             #self.updateCollisionWithPlane_basicMethod(self.collisionPlane, deltaTime)
-            self.updateCollisionWithPlane_newtonianMethod(self.collisionPlane, deltaTime)
+            #self.updateCollisionWithPlane_newtonianMethod(self.collisionPlane, deltaTime)
+            self.updateCollisionWithPlane_resolveVelocityConstraintsLagrange(self.collisionPlane, deltaTime)
         
         return True # indicate that we need to update geo
     
