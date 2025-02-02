@@ -228,11 +228,18 @@ class Cuboid(WinObj):
         
         # check each vert for penetration & deal with collision response
         maxPen = 0
+        accumPenCorrection = 0      # avoid double fix for penetration w/ multiple contacts
         for vert in cuboidVerts:
             dst = dot(vert - planePos, planeNormal)
+            
+            # avoid double velocity fix when there is multiple contact point in a single update
+            dst -= accumPenCorrection
+
+            # if no pen, we're good
             if dst >= 0:
                 continue
             maxPen = max(maxPen, -dst)
+            accumPenCorrection += dst
 
             # overall equation (curr_velRel + result_velRel = 0): j v + b = 0
             #  deltaV = v2 - v1 = M^-1 J^T lambda
@@ -253,10 +260,10 @@ class Cuboid(WinObj):
             jv = dot(j_r0_velLin, self.vel - plane.vel) + dot(j_r0_velAng, self.velAng)
             
             # Baumgarte stabilization (introduces force that counteracts deviations from constraints by using feedback control)
-            beta = 0.5 # magic number (1 fully resolves overlap in a single frame, so 0 is no feedback)
+            beta = 0.15 # magic number (1 fully resolves overlap in a single frame, so 0 is no feedback)
             relVelAtPt = self.vel - plane.vel + cross(self.velAng, r)
             velClosing = dot(relVelAtPt, planeNormal)
-            b = (beta / deltaTime) * dst - self.restitution * velClosing # vel required to fix overlap dst + bounce
+            b = (beta / deltaTime) * dst + self.restitution * velClosing # vel required to fix overlap dst + bounce
             
             # calc the multiplier and stabilize across frames
             lamb = mEff * (-(jv + b))
@@ -268,10 +275,12 @@ class Cuboid(WinObj):
             self.vel += (1 / self.mass) * j_r0_velLin * max(lamb - lambdaLinApplied, 0)
             lambdaLinApplied = max(lamb, lambdaLinApplied)  # avoid multiple applications of linear velocity (two+ contacts resolving penetration)
             self.velAng += self.calcInertiaTensorInverse_worldSpace() @ (j_r0_velAng * lamb)
-
-        # push it out along the plane normal
-        self.pos += planeNormal * maxPen # this isn't really needed, but helps reduce high velocity responses
-        
+            
+        # friction (until this is implemented with lagrange multipliers)
+        if maxPen > 0:
+            self.vel *= max(1 - deltaTime * 5, 0.9)
+            self.velAng *= max(1 - deltaTime * 1, 0.9)
+            
     def updatePhysics_subStep(self, deltaTime):
         # linear motion
         self.vel += self.window.gravity * deltaTime
@@ -289,8 +298,8 @@ class Cuboid(WinObj):
         if self.collisionPlane is not None:
             # update with our preferred method (only one should be applied)
             #self.updateCollisionWithPlane_basicMethod(self.collisionPlane, deltaTime)
-            self.updateCollisionWithPlane_newtonianMethod(self.collisionPlane, deltaTime)
-            #self.updateCollisionWithPlane_resolveVelocityConstraintsLagrange(self.collisionPlane, deltaTime)
+            #self.updateCollisionWithPlane_newtonianMethod(self.collisionPlane, deltaTime)
+            self.updateCollisionWithPlane_resolveVelocityConstraintsLagrange(self.collisionPlane, deltaTime)
         
         return True # indicate that we need to update geo
     
