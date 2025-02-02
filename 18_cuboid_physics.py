@@ -41,7 +41,7 @@ def updateLevel(window, deltaTime):
         planeNeedsBumpUpdate = True
     if planeNeedsBumpUpdate:
         posPrev = plane.pos
-        plane.pos = v3(0, -10, 0) + (v3_up() * 4 + bumpDirVec * 2) * bumpProgress
+        plane.pos = v3(0, -10, 0) + (v3_up() * 3.0 + bumpDirVec * 1.5) * bumpProgress
         plane.vel = (plane.pos - posPrev) / max(deltaTime, 0.001)
     else:
         plane.vel = v3_zero()
