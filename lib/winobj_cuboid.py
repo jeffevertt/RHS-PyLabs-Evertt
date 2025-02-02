@@ -245,17 +245,18 @@ class Cuboid(WinObj):
             j_r0_velLin, j_r0_velAng = planeNormal, cross(r, planeNormal) # row zero (derivative of position constraint)
             # todo (friction constraints)
             # j_r1_tangent (2x of these) = [ -t^T  cross(r,t) ], then clamp -m*lambda_normal <= lambda_tangent <= m*lambda_normal
+
+            # mEff = (J M^-1 J^T)^-1, but  since j is a 1x6 & because j_r0_velLin is a unit vector, can simplify into this
+            mEff = 1.0 / ((1 / self.mass) + dot(j_r0_velAng, self.calcInertiaTensorInverse_worldSpace() @ j_r0_velAng))
             
-            k = (1 / self.mass) + dot(j_r0_velAng, self.calcInertiaTensorInverse_worldSpace() @ j_r0_velAng)
-            mEff = 1.0 / k
-            
+            # j @ v, again just a dot because j is 1x6
             jv = dot(j_r0_velLin, self.vel - plane.vel) + dot(j_r0_velAng, self.velAng)
             
             # Baumgarte stabilization (introduces force that counteracts deviations from constraints by using feedback control)
             beta = 0.5 # magic number (1 fully resolves overlap in a single frame, so 0 is no feedback)
             relVelAtPt = self.vel - plane.vel + cross(self.velAng, r)
             velClosing = dot(relVelAtPt, planeNormal)
-            b = (beta / deltaTime) * dst - self.restitution * velClosing
+            b = (beta / deltaTime) * dst - self.restitution * velClosing # vel required to fix overlap dst + bounce
             
             # calc the multiplier and stabilize across frames
             lamb = mEff * (-(jv + b))
@@ -264,7 +265,7 @@ class Cuboid(WinObj):
             lamb = lambdaTotal - lambdaTotalOld             # do this as you go, so future constraints use previous (within a frame)
             
             # apply solution to velocities
-            self.vel += (1 / self.mass) * j_r0_velLin * max(lamb - lambdaLinApplied, 0) #lamb 
+            self.vel += (1 / self.mass) * j_r0_velLin * max(lamb - lambdaLinApplied, 0)
             lambdaLinApplied = max(lamb, lambdaLinApplied)  # avoid multiple applications of linear velocity (two+ contacts resolving penetration)
             self.velAng += self.calcInertiaTensorInverse_worldSpace() @ (j_r0_velAng * lamb)
 
