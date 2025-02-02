@@ -224,7 +224,6 @@ class Cuboid(WinObj):
 
         # need to keep total lambda positive, sum(lambda) >= 0
         lambdaTotal = 0.0
-        lambdaLinApplied = 0.0
         
         # check each vert for penetration & deal with collision response
         maxPen = 0
@@ -272,8 +271,7 @@ class Cuboid(WinObj):
             lamb = lambdaTotal - lambdaTotalOld             # do this as you go, so future constraints use previous (within a frame)
             
             # apply solution to velocities
-            self.vel += (1 / self.mass) * j_r0_velLin * max(lamb - lambdaLinApplied, 0)
-            lambdaLinApplied = max(lamb, lambdaLinApplied)  # avoid multiple applications of linear velocity (two+ contacts resolving penetration)
+            self.vel += (1 / self.mass) * j_r0_velLin * lamb
             self.velAng += self.calcInertiaTensorInverse_worldSpace() @ (j_r0_velAng * lamb)
             
         # friction (until this is implemented with lagrange multipliers)
