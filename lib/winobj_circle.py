@@ -2,10 +2,11 @@ from lib.winobj import WinObj
 from lib.utils import *
 
 class Circle(WinObj):
-    def __init__(self, window, pos, radius, vel = v2(0,0), text = "", color = "red", updateFn = None):
+    def __init__(self, window, pos, radius, vel = v2(0,0), text = "", textColor = "white", color = "red", updateFn = None):
         super().__init__(window, pos, vel)
         self.radius = radius
         self.text = text
+        self.textColor = textColor
         self.color = color
         self.window.sim.onCreated(self)
         self.updateFn = updateFn
@@ -21,7 +22,7 @@ class Circle(WinObj):
                                                         fill = self.color, outline = "black", width = 2)
         if len(self.text) > 0:
             self.gfxText = self.window.canvas.create_text(self.window.toPixelsX(self.pos[0]), self.window.toPixelsY(self.pos[1]), 
-                                                        text = self.text, font=("Arial", 12), fill = "white")
+                                                        text = self.text, font=("Arial", 12), fill = self.textColor)
         else:
             self.gfxText = None
     def destroyGfx(self):
