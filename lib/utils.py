@@ -124,6 +124,8 @@ def limitMag(v, maxMag):
 
 def clampToClosestHalfUnit(pt):
     return v2(round(pt[0] - 0.5) + 0.5, round(pt[1] - 0.5) + 0.5)
+def clampToClosestWholeUnit(pt):
+    return v2(round(pt[0]), round(pt[1]))
 
 def minAngleToAngleDelta(a1, a2):
     d1 = a2 - a1
