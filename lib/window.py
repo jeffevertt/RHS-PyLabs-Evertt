@@ -1,3 +1,5 @@
+import ssl
+import certifi
 import numpy as np
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -110,13 +112,35 @@ class Window:
                 "score": str(score)
             }
         }
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json = json.dumps(data)) as response:
-                response.raise_for_status()
-                try:
-                    await response.json()
-                except aiohttp.ClientError as e:
-                    log(f"--> {e}")
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.post(url, json = json.dumps(data)) as response:
+        #         response.raise_for_status()
+        #         try:
+        #             await response.json()
+        #         except aiohttp.ClientError as e:
+        #             log(f"--> {e}")
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        conn = aiohttp.TCPConnector(ssl=ssl_context)
+        async with aiohttp.ClientSession(connector=conn) as session:
+            try:
+                async with session.post(url, json=json.dumps(data)) as response:
+                    response.raise_for_status()
+                    response_data = None
+                    try:
+                        response_data = await response.json()
+                    except aiohttp.ContentTypeError:
+                        log(f"Warning (leaderboardPost-failed): response was not JSON. Status: {response.status}, Content: {await response.text()}")
+                    except aiohttp.ClientError as e:
+                        log(f"Warning (leaderboardPost-failed): error parsing response JSON: {e}")
+                    return response_data
+            except aiohttp.ClientConnectorCertificateError as e:
+                log(f"Warning (leaderboardPost-failed): Certificate error: {e}")
+            except aiohttp.ClientConnectorError as e:
+                log(f"Warning (leaderboardPost-failed): Connection error: {e}")
+            except aiohttp.ClientResponseError as e:
+                log(f"Warning (leaderboardPost-failed): HTTP error: {e}, Response text: {await response.text()}")
+            except Exception as e:
+                log(f"Warning (leaderboardPost-failed): Unexpected error: {e}")
 
     # mouse support
     def onMouseLeftPressed(self, event):

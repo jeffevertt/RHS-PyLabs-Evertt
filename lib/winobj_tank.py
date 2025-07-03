@@ -214,8 +214,7 @@ class Tank(WinObj):
             skipThisCmd = False
             if abs(moveVec[0]) > 0.000001 and abs(moveVec[1]) > 0.000001:
                 log("INVALID MOVE: Tanks move only horizontally & vertically")
-                raise Exception('INVALID MOVE: Tanks move only horizontally & vertically')
-                return
+                skipThisCmd = True
             if lengthSqr(moveVec) < 0.001:
                 log("INVALID MOVE: Zero distance")
                 skipThisCmd = True
