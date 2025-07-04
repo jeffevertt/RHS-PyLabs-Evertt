@@ -48,7 +48,8 @@ def length(v):
 def lengthSqr(v):
     return v @ v
 def unit(v):
-    return v / np.linalg.norm(v, keepdims=True)
+    l = np.linalg.norm(v, keepdims=True)
+    return v / (l if l != 0 else 0.000001)
 def dot(v, w):
     return v @ w
 def cross(v, w):

@@ -13,21 +13,21 @@ class TankCmd:
         return "TankCmd"
 class TankCmd_Move(TankCmd):
     def __init__(self, dir):
-        super().__init__(dir)
+        super().__init__(dir.copy())
     def typeAsInt(self):
         return 0
     def description(self):
         return "Move"
 class TankCmd_Turn(TankCmd):
     def __init__(self, dir):
-        super().__init__(unit(dir))
+        super().__init__(unit(dir.copy()))
     def typeAsInt(self):
         return 1
     def description(self):
         return "Turn"
 class TankCmd_Shoot(TankCmd):
     def __init__(self, dir):
-        super().__init__(unit(dir))
+        super().__init__(unit(dir.copy()))
     def typeAsInt(self):
         return 2
     def description(self):
@@ -208,7 +208,7 @@ class Tank(WinObj):
         if isinstance(self.activeCommand, TankCmd_Move):
             moveVec = self.activeCommand.dir
             moveDst = length(moveVec)
-            moveTravelTime = moveDst / self.tankMoveSpeed
+            moveTravelTime = max(moveDst / self.tankMoveSpeed, 0.000001)
             
             # check for invalid move
             skipThisCmd = False
@@ -251,7 +251,7 @@ class Tank(WinObj):
         elif isinstance(self.activeCommand, TankCmd_Turn):
             trgAngle = angleDeg(self.activeCommand.dir)
             angleDelta = minAngleToAngleDelta(angleDeg(self.activeCommand.startDir), trgAngle)
-            moveTravelTime = abs(angleDelta) / self.tankTurnSpeed
+            moveTravelTime = max(abs(angleDelta) / self.tankTurnSpeed, 0.00001)
             
             # update the active command
             self.activeCommand.progress = min(self.activeCommand.progress + deltaTime / moveTravelTime, 1)
