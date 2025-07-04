@@ -222,6 +222,12 @@ def isInsideField(window, pt, buffer = 0):
         return False
     return True
 
+def calcOBBCorners(winObjOBB):
+    ul = rotateVec2(v2(-winObjOBB.width/2, winObjOBB.height/2), winObjOBB.angle) + winObjOBB.pos
+    ur = rotateVec2(v2( winObjOBB.width/2, winObjOBB.height/2), winObjOBB.angle) + winObjOBB.pos
+    lr = rotateVec2(v2( winObjOBB.width/2,-winObjOBB.height/2), winObjOBB.angle) + winObjOBB.pos
+    ll = rotateVec2(v2(-winObjOBB.width/2,-winObjOBB.height/2), winObjOBB.angle) + winObjOBB.pos
+    return [ ul, ur, lr, ll ]
 def calcRotatedRectanglePtsInPixels(center, rcHalfDims, rcOffset, angleDeg, window):
     ul = window.toPixels(center + rotateVec2(v2(-rcHalfDims[0], rcHalfDims[1]) + rcOffset, angleDeg))
     ur = window.toPixels(center + rotateVec2(v2( rcHalfDims[0], rcHalfDims[1]) + rcOffset, angleDeg))
