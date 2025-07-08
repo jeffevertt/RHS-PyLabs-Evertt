@@ -1,3 +1,4 @@
+import asyncio
 import tkinter as tk
 from lib.window import Window
 from lib.winobj_cannon import Cannon
@@ -109,7 +110,11 @@ class WindowAlienInvasion(Window):
 
         # text
         self.updateTimerAndScoreText()
-        
+    
+    def setPlayerName(self, playerName, playerIdx = 0):
+        if playerIdx < len(self.playerNames):
+            self.playerNames[playerIdx] = playerName
+
     def checkForEndCondition(self):
         # end condition
         if self.levelTime == 0:
@@ -126,7 +131,7 @@ class WindowAlienInvasion(Window):
             self.textScoreFinal.pack(side = tk.TOP)
             
             # leaderboard
-            self.postToLeaderboard()
+            asyncio.run(self.postToLeaderboard())
         else:
             self.textScoreFinal.pack_forget()
             

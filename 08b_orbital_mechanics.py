@@ -13,7 +13,7 @@ from lib.winobj_circle import Circle
 #                            (G is the gravitational constant, I recommend using G = 1, though in reality G = 6.67430 × 10⁻¹¹ m³/kg·s²)
 #   F = m a              <-- Newton's second law of motion (force = mass * acceleration)
 #                            (I recommend using 10000 to 50000 for the sun's mass and 1 to 10 for the meteoroid)
-# note: if you'd like to kill off meteroid that crash into the sun, you can call "meteroid.destroy()"
+# note: if you'd like to kill off meteoroid that crash into the sun, you can call "meteoroid.destroy()"
 def updateMeteoroidFunction(meteoroid, deltaTime):
     # TODO...use meteoroid.pos and meteoroid.vel (both 2d vectors) and sun.pos
     pass

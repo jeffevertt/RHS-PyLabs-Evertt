@@ -7,8 +7,8 @@ from lib.utils import *
 import random
 
 class WindowPong(Window):
-    def __init__(self, updateBallFn = None):
-        super().__init__("Lab 09: Pong!", gridPixelsPerUnit = 24)
+    def __init__(self, updateBallFn = None, onCreateWorld = None, onCreateWorldPre = None, canvasColor='#F4EAD7', bckGndImage = None):
+        super().__init__("Lab 09: Pong!", gridPixelsPerUnit = 24, canvasColor=canvasColor, bckGndImage=bckGndImage)
         
         self.walls = [None, None]
         self.paddles = [None, None]
@@ -19,6 +19,8 @@ class WindowPong(Window):
         self.timeSinceBall = 0
         self.spawnNextBallRight = True
         self.userCode = updateBallFn
+        self.createWorldPre = onCreateWorldPre
+        self.createWorld = onCreateWorld
         
     def initApp(self):
         super().initApp()
@@ -111,6 +113,10 @@ class WindowPong(Window):
         self.levelScores = [0, 0]
         self.levelTime = 60
 
+        # user callback
+        if self.createWorldPre is not None:
+            self.createWorldPre(self)
+
         # create walls
         self.walls[0] = Wall(self, v2(0, self.minCoordinateY() + self.wallThickness), v2(0, 1))
         self.walls[1] = Wall(self, v2(0, self.maxCoordinateY() - self.wallThickness), v2(0, -1))
@@ -128,6 +134,10 @@ class WindowPong(Window):
 
         # text
         self.updateTimerAndScoreText()
+
+        # user callback
+        if self.createWorld is not None:
+            self.createWorld(self)
         
     def checkForEndCondition(self):
         # end condition

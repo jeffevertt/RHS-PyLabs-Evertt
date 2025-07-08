@@ -42,8 +42,8 @@ class Window:
         if bckGndImage is not None:
             img = Image.open(bckGndImage)
             img = img.resize( (self.width, self.height) )
-            photo = ImageTk.PhotoImage(img)
-            self.canvas.create_image(0, 0, image=photo, anchor="nw")
+            self.bckGndPhoto = ImageTk.PhotoImage(img)
+            self.canvas.create_image(0, 0, image=self.bckGndPhoto, anchor="nw")
             self.canvas.pack(fill="both", expand=True)
         
         # mouse support
