@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import numpy as np
 from webcolors import name_to_hex
 import math
@@ -141,6 +142,18 @@ def rotateVec2(v, angleDeg):
     cos = math.cos(angle)
     sin = math.sin(angle)
     return v2(v[0] * cos - v[1] * sin, v[0] * sin + v[1] * cos)
+def rotateVec3X(v, angleDeg):
+    v = m4x4RotX(angleDeg) @ v4(v, 1)
+    return v3_from_v4(v)
+def rotateVec3Y(v, angleDeg):
+    v = m4x4RotY(angleDeg) @ v4(v, 1)
+    return v3_from_v4(v)
+def rotateVec3Z(v, angleDeg):
+    v = m4x4RotZ(angleDeg) @ v4(v, 1)
+    return v3_from_v4(v)
+def rotateVec3Axis(v, axis, angleDeg):
+    v = m4x4RotAxis(v3_down, axis, angleDeg) @ v4(v, 1)
+    return v3_from_v4(v)
 
 def colorNamedToHex(colorNamed):
     return name_to_hex(colorNamed) if not colorNamed.startswith("#") else colorNamed
@@ -208,8 +221,12 @@ def intersectSphereSegment(sphereCenter, sphereRadius, segStart, segDir):
     segDirUnit = segDir * (1 / segLen)
     alongSegT = min(max((dot(v, segDirUnit) / segLen), 0), 1)
     closestPoint = segStart + segDir * alongSegT
-    intersectsSphere = (sphereCenter.distanceSqr(closestPoint) < (sphereRadius * sphereRadius))
-    return { 'intersects':intersectsSphere, 'closestPoint':closestPoint, 'closestPointT':alongSegT }
+    intersectsSphere = (lengthSqr(sphereCenter - closestPoint) < (sphereRadius * sphereRadius))
+    ret = SimpleNamespace()
+    ret.intersects = intersectsSphere
+    ret.closestPoint = closestPoint
+    ret.closestPointT = alongSegT
+    return ret
 def intersectLinePlane(planePoint, planeNormal, linePoint, lineDirUnit):
     if dot(planeNormal, lineDirUnit) == 0:
         return None

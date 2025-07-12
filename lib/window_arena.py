@@ -295,7 +295,8 @@ class WindowArena(Window):
             self.interactGameDone()
         
         # leaderboard
-        asyncio.run(self.postToLeaderboard())
+        if self.gameConfig != WindowArenaConfig.TANKS_INTERACTIVE:
+            asyncio.run(self.postToLeaderboard())
             
     def checkForCollisions(self):
         # ammo

@@ -5,11 +5,14 @@ from lib.winobj_obb import OBB
 import random
 
 # helper function - gets the vertices of the obb
+#  TODO: calculate the four corners of the box and return them.
+#           you can use rotateVec2 to help with this. 
+#           you'll need to use: obb.pos obb.width, obb.height, and obb.angle
 def calcObbCorners(obb: OBB):
-    ul = rotateVec2(v2(-obb.width/2, obb.height/2), obb.angle) + obb.pos
-    ur = rotateVec2(v2( obb.width/2, obb.height/2), obb.angle) + obb.pos
-    lr = rotateVec2(v2( obb.width/2,-obb.height/2), obb.angle) + obb.pos
-    ll = rotateVec2(v2(-obb.width/2,-obb.height/2), obb.angle) + obb.pos
+    ul = obb.pos
+    ur = obb.pos
+    lr = obb.pos
+    ll = obb.pos
     return [ ul, ur, lr, ll ]
 
 ####### IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB #######

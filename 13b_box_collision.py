@@ -19,7 +19,10 @@ def updateBallFunction(ball, deltaTime):
 def clickReleaseFn(pos, vel):
     vel = limitMag(vel, 30)
     Circle(window, pos, 1.0, vel = vel, color = "yellow", updateFn = updateBallFunction)
-
+def updateOBB(obb, deltaTime):
+    obb.angle += deltaTime * 0
+    if obb.angle >= 360:
+        obb.angle -= 360
 window = Window("Lab 13b: Box(OBB) Collision", subTitle = "Goal: Bounce your ball off the box...", clickReleaseFn = clickReleaseFn)
-box = OBB(window, v2(0,0), 10, 5, angle = random.random() * 60.0 + 20, color = "orange")
+box = OBB(window, v2(0,0), 10, 5, angle = random.random() * 60.0 + 20, color = "orange", updateFn=updateOBB)
 window.runGameLoop()
