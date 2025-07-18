@@ -1,8 +1,14 @@
 from lib.window_platformer import *
 from lib.winobj_circle import *
+from lib.winobj_image import *
+from lib.winobj_line import *
+
+# after hitting 'F9' to print your level to the console, paste that code in here to recreate it
+def createWorldFn(window):
+    pass
 
 # update functions (this is where your code goes)
-def update(deltaTime, ball:Circle, rectangles:list[Rectangle], isKeyPressedFn):
+def update(deltaTime, window:WindowPlatformer, ball:Circle, rectangles:list[Rectangle], levelTime, isKeyPressedFn):
     #TODO: Deal with collision with walls, motion, etc
     #       You can use isKeyPressedFn to determine if keys are pressed...
     #            Examples: isKeyPressedFn('space'), isKeyPressedFn('Right'), isKeyPressedFn('a')
@@ -18,4 +24,4 @@ def update(deltaTime, ball:Circle, rectangles:list[Rectangle], isKeyPressedFn):
 ####################################################################################################
 def createRect(window:Window, pos, width, height):
     return Rectangle(window, pos, width, height)
-WindowPlatformer(updateFn = update, createRectFn = createRect).runGameLoop()
+WindowPlatformer(updateFn = update, createWorldFn=createWorldFn, createRectFn = createRect).runGameLoop()

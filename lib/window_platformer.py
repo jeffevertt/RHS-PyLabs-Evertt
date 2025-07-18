@@ -1,24 +1,27 @@
 import tkinter as tk
 from lib.window import Window
+from lib.simulation import Simulation
 from lib.winobj_rectangle import Rectangle
 from lib.winobj_circle import Circle
 from lib.utils import *
 import random
 
 class WindowPlatformer(Window):
-    def __init__(self, updateFn = None, createRectFn = None):
+    def __init__(self, updateFn = None, createWorldFn = None, createRectFn = None):
         super().__init__("Lab 14c: Platformer (create your own)!", gridPixelsPerUnit = 24)
         
-        self.rects = []
-        self.points = []
         self.pointsSpawnLoc = []
         self.ball = None
         self.ballRadius = 0.5
+        self.pointsCollected = 0
         self.timeSinceBall = 0
         self.updateFn = updateFn
+        self.createWorldFn = createWorldFn
         self.createRectFn = createRectFn
         self.rectSpawnPtA = None
         self.rectSpawn = None
+        self.levelTime = 0
+        self.timeSinceSaveLevel = 0
         
     def initApp(self):
         super().initApp()
@@ -32,12 +35,16 @@ class WindowPlatformer(Window):
     def update(self, deltaTime):
         super().update(deltaTime)
         
+        # update level time
+        self.levelTime += deltaTime
+        self.timeSinceSaveLevel += deltaTime
+        
         # level update
         self.updateLevel(deltaTime)
         
         # user code update
         if self.updateFn != None and self.ball != None:
-            self.updateFn(deltaTime, self.ball, self.rects, self.isKeyPressed)
+            self.updateFn(deltaTime, self, self.ball, self.getRects(), self.levelTime, self.isKeyPressed)
             self.sim.updateGfxAllObjects()
     
     def createTimerAndScore(self):
@@ -47,13 +54,29 @@ class WindowPlatformer(Window):
     def onMouseLeftDoubleClick(self, event):
         self.resetSimulation()
         
+    def getRects(self):
+        return self.sim.objectsOfType(Rectangle)
+    def getPoints(self):
+        points = []
+        for point in self.sim.objectsOfType(Circle):
+            if point.color == "gold":
+                points.append(point)
+        return points
+        
     def resetSimulation(self, fullReset = True):
+        # level time
+        self.levelTime = 0
+        
         # maybe destroy all objects
         if fullReset:
+            # destroy everything
             self.sim.destroyAll()
 
             # level setup        
             self.onLevelSetup()
+        
+        # reset points    
+        self.resetLevel()
         
         # clear any final game text    
         self.textScoreFinal.pack_forget()
@@ -62,9 +85,13 @@ class WindowPlatformer(Window):
         self.sim.update(0)
         
     def onLevelSetup(self):
+        # user code
+        if self.createWorldFn is not None:
+            self.createWorldFn(self)
+
         # create the ball
         self.spawnBall()
-        
+
         # first time update
         self.updateLevel(0, True)
         
@@ -94,7 +121,6 @@ class WindowPlatformer(Window):
     def onMouseLeftReleased(self, event):
         if self.rectSpawn is not None:
             if self.rectSpawn.width > 0.1 and self.rectSpawn.height > 0.1:
-                self.rects.append(self.rectSpawn)
                 self.rectSpawn = None
             else:
                 self.rectSpawn.destroy()
@@ -102,28 +128,46 @@ class WindowPlatformer(Window):
         super().onMouseLeftReleased(event)
     def onMouseRightPressed(self, event):
         pos = self.toCoordFrame(v2(event.x, event.y))
-        point = Circle(self, pos, 0.2, color = "gold")
-        self.points.append(point)
-        self.pointsSpawnLoc.append(pos)
+        self.createGoalPoint(pos)
         super().onMouseRightPressed(event)
+    def createGoalPoint(self, pos):
+        Circle(self, pos, 0.2, color = "gold")
+        pointAlreadyAdded = False
+        for point in self.pointsSpawnLoc:
+            if length(point - pos) < 0.1:
+                pointAlreadyAdded = True
+                break
+        if not pointAlreadyAdded:    
+            self.pointsSpawnLoc.append(pos)
     def onKeyPress(self, event):
         if event.keysym == 'Escape':
             self.resetLevel()
+        if event.keysym == 'F9' and self.timeSinceSaveLevel > 2.0:
+            self.printCode_createPlatforms()
+            self.timeSinceSaveLevel = 0
         super().onKeyPress(event)
+        
+    def printCode_createPlatforms(self):
+        print("\n    # add this code to your createPlatforms function")
+        for rect in self.sim.objectsOfType(Rectangle):
+            print("    " + f"Rectangle(window, v2({rect.pos[0]:0.2f},{rect.pos[1]:0.2f}), {rect.width:0.2f}, {rect.height:0.2f})")
+        for point in self.sim.objectsOfType(Circle):
+            if point.color == "gold":
+                print("    " + f"window.createGoalPoint(v2({point.pos[0]:0.2f},{point.pos[1]:0.2f}))")
         
     def resetLevel(self):
         if self.ball is not None:
             self.ball.destroy()
             self.ball = None
-        for point in self.points.copy():
+        points = self.getPoints()
+        for point in points:
             point.destroy()
-        self.points = []
         for pos in self.pointsSpawnLoc:
-            point = Circle(self, pos, 0.2, color = "gold")
-            self.points.append(point)
+            Circle(self, pos, 0.2, color = "gold")
+        self.spawnBall()
     def checkForEndCondition(self):
         # end condition
-        if len(self.pointsSpawnLoc) > 0 and len(self.points) == 0:
+        if len(self.pointsSpawnLoc) > 0 and len(self.getPoints()) == 0:
             self.textScoreFinal.config(text = "You WIN!!!")
             self.textScoreFinal.pack(side = tk.TOP)
         else:
@@ -132,10 +176,11 @@ class WindowPlatformer(Window):
     def checkForPointsCollected(self):
         if self.ball is None:
             return
-        for point in self.points.copy():
+        points = self.getPoints()
+        for point in points:
             dst = length(self.ball.pos - point.pos)
             if dst < self.ball.radius + point.radius:
-                self.points.remove(point)
+                self.pointsCollected += 1
                 point.destroy()
 
     def updateLevel(self, deltaTime, firstUpdate = False):
@@ -153,7 +198,6 @@ class WindowPlatformer(Window):
             self.timeSinceBall += deltaTime
             if self.timeSinceBall > 2:
                 self.resetLevel()
-                self.spawnBall()
                 self.timeSinceBall = 0
         else:
             self.timeSinceBall = 0

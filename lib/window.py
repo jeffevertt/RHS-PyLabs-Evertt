@@ -253,3 +253,9 @@ class Window:
         if self.gfxSubTitle != None:
             self.canvas.delete(self.gfxSubTitle)
             self.gfxSubTitle = None
+    def updateSubTitle(self, str):
+        self.subTitle = str
+        if self.gfxSubTitle is None and self.subTitle is not None:
+            self.createSubTitle()
+        elif self.subTitle is not None:
+            self.canvas.itemconfigure(self.gfxSubTitle, text=str)

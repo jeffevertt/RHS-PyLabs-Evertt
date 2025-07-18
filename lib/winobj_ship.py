@@ -246,16 +246,16 @@ class Ship(WinObj):
                 
                 # keep in bounds
                 if self.pos[0] <= Ship.SHIP_SHELL_RADIUS/2:
-                    self.pos += v2_right() * 0.1
+                    self.pos += v2_right() * 0.5
                     self.activeCommand.progress = 1
                 if self.pos[1] <= Ship.SHIP_SHELL_RADIUS/2:
-                    self.pos += v2_up() * 0.1
+                    self.pos += v2_up() * 0.5
                     self.activeCommand.progress = 1
                 if self.pos[0] >= self.window.maxCoordinateX() - Ship.SHIP_SHELL_RADIUS/2:
-                    self.pos += v2_left() * 0.3
+                    self.pos += v2_left() * 0.5
                     self.activeCommand.progress = 1
                 if self.pos[1] >= self.window.maxCoordinateY() - Ship.SHIP_SHELL_RADIUS/2:
-                    self.pos += v2_down() * 0.3
+                    self.pos += v2_down() * 0.5
                     self.activeCommand.progress = 1
             
             # and check for done
