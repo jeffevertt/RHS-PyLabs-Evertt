@@ -54,7 +54,7 @@ def updateLevel(window, deltaTime):
 ############################## DO NOT MODIFY  METHODS BELOW THIS LINE ##############################
 ########################## EXCEPT TO REMOVE TUTORIAL GAME CONFIG ARGUMENT  #########################
 ####################################################################################################
-WindowPhysics3D("Lab 18: Cuboid Physics!", 
+WindowPhysics3D("Lab 19: Cuboid Physics!", 
                 cameraPos = v3(0,0,-50),
                 setupLevelFn = setupLevel,
                 updateLevelFn = updateLevel).runGameLoop()

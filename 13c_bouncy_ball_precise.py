@@ -34,6 +34,6 @@ def clickReleaseFn(pos, vel):
     (text, color) = ("C", "steelblue") if window.isKeyPressed('Control_L') else (text, color)
     ball = Circle(window, pos, 0.5, vel = vel, text = text, color = color, updateFn = updateFunction)
     
-window = Window("Lab 4a: Ball Collision", subTitle = "Goal: Bounce your ball off the red ball...", clickReleaseFn = clickReleaseFn)
+window = Window("Lab 13c: Ball Precise", subTitle = "Goal: Bounce your off the ground, precisely...", clickReleaseFn = clickReleaseFn)
 wall = Wall(window, v2(0,-8), v2(0,1))
 window.runGameLoop()

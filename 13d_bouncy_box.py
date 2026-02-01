@@ -52,6 +52,6 @@ def clickReleaseFn(pos, vel):
     obb.restitution = 0.8
     obb.angVel = random.choice([-50,50])
 
-window = Window("Lab 13c: Bouncy Box(OBB) - Collision & Response", subTitle = "Goal: Bounce the box off the floor...", clickReleaseFn = clickReleaseFn)
+window = Window("Lab 13d: Bouncy Box(OBB) - Collision & Response", subTitle = "Goal: Bounce the box off the floor...", clickReleaseFn = clickReleaseFn)
 wall = Wall(window, v2(0, -10), v2(0,1))
 window.runGameLoop()

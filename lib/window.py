@@ -10,7 +10,7 @@ import aiohttp
 import json
 
 class Window:
-    def __init__(self, title, width = 1024, height = 600, subTitle = "", gridEnable = True, clickReleaseFn = None, gridPixelsPerUnit = 24, gridOriginAtLL = False, canvasColor = '#F4EAD7', bckGndImage = None):
+    def __init__(self, title, width = 1024, height = 600, subTitle = "", gridEnable = True, clickReleaseFn = None, gridPixelsPerUnit = 24, gridOriginAtLL = False, canvasColor = '#F4EAD7', bckGndImage = None, clickDoubleFn = None):
         # consts
         self.gridPixelsPerUnit = gridPixelsPerUnit
         
@@ -52,6 +52,7 @@ class Window:
         self.lastMousePos = None
         self.mouseLeftVelHist = []
         self.clickReleaseFn = clickReleaseFn
+        self.clickDoubleFn = clickDoubleFn
         self.canvas.bind("<Button-1>", self.onMouseLeftPressed)
         self.canvas.bind("<ButtonRelease-1>", self.onMouseLeftReleased)
         self.canvas.bind("<Double-Button-1>", self.onMouseLeftDoubleClick)
@@ -159,7 +160,8 @@ class Window:
         self.mouseLeftVelHist = []
         self.lastMousePos = None
     def onMouseLeftDoubleClick(self, event):
-        pass
+        if (self.clickDoubleFn):
+            self.clickDoubleFn(self)
     def onMouseRightPressed(self, event):
         self.isMouseRightDown = True
     def onMouseRightReleased(self, event):
