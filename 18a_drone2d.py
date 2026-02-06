@@ -5,7 +5,12 @@ from lib.winobj_drone2d import Drone2D
 from lib.winobj_wall import Wall
 
 ############## IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB ############
-######### ... ########
+########## This function computes the desired thrust (angle & magnitude) ########
+##########       the drone itself limits the max magnitude & angle       ########
+##########     the angle is in the drone's local space, where zero is    ########
+##########    directly up, a positive value pivots the thrust to accel   ########
+##########                 the drone up and to the left                  ########
+######### The drone should move towards the cursor position & hover there #######
 #################################################################################
 def calcDroneThrust(drone:Drone2D, targetPos:v2, deltaTime):
     # setup
