@@ -7,20 +7,21 @@ from lib.winobj_wall import Wall
 
 class WindowSimInvPend(Window):
     # consts
-    GROUND_HEIGHT = -8
-    ROD_HALFDIMS = v2(8, 0.3)
+    GROUND_HEIGHT = -10
+    ROD_HALFDIMS = v2(10, 0.3)
     ROD_INIT_ANGLE_MIN_MAX = (88.0, 92.0)
     ROD_DAMP = 0.9995
     PIVOT_DAMP = 0.95
     PIVOT_HALFDIMS = v2(1, 0.5)
     PIVOT_MIN_MAX_X = v2(-20,20)
-    MASS_ROD_TO_PIVOT = 0.2
+    MASS_ROD_TO_PIVOT = 0.5
     KEYBOARD_THRUST = 100
     
-    def __init__(self, title, subTitle, clickDoubleFn = None, calcPivotThrust = None):
+    def __init__(self, title, subTitle, clickDoubleFn = None, calcPivotThrust = None, onReset = None):
         super().__init__(title, subTitle = subTitle, gridPixelsPerUnit = 24, clickDoubleFn = clickDoubleFn)
         
         self.calcPivotThrust = calcPivotThrust
+        self.onReset = onReset
         self.ground = None
         self.pivot = None
         self.rod = None
@@ -63,6 +64,10 @@ class WindowSimInvPend(Window):
         rodAngle = randRange(WindowSimInvPend.ROD_INIT_ANGLE_MIN_MAX[0], WindowSimInvPend.ROD_INIT_ANGLE_MIN_MAX[1])
         self.rod.pos, self.rod.angle, self.rod.vel, self.rod.angVel = v2(0,WindowSimInvPend.GROUND_HEIGHT) + rotateVec2(v2_right(), rodAngle) * WindowSimInvPend.ROD_HALFDIMS[0], rodAngle, v2_zero(), 0.0
         
+        # callback
+        if self.onReset is not None:
+            self.onReset()
+        
         # tell the simulation about it
         self.sim.update(0)
         
@@ -70,7 +75,7 @@ class WindowSimInvPend(Window):
         # user update
         pivotThrust = 0
         if self.calcPivotThrust is not None:
-            pivotThrust = self.calcPivotThrust(self.pivot.pos, self.rod.angle)
+            pivotThrust = self.calcPivotThrust(self.pivot.pos.copy(), self.rod.angle, deltaTime)
             
         # user keyboard input
         keyboardThrust = WindowSimInvPend.KEYBOARD_THRUST * (0.25 if self.isKeyPressed("Shift_L") or self.isKeyPressed("Shift_R") else 1)
@@ -93,7 +98,7 @@ class WindowSimInvPend(Window):
             self.rod.angVel = 0
         pivotAngAccel = (gravityTorque + pivotThrust * sinDeg(self.rod.angle)) / WindowSimInvPend.ROD_HALFDIMS[0]
         pushBackForce = (pivotAngAccel * sinDeg(self.rod.angle))
-        self.pivot.vel -= v2_right() * pushBackForce * WindowSimInvPend.MASS_ROD_TO_PIVOT * deltaTime
+        self.pivot.vel += v2_right() * pushBackForce * WindowSimInvPend.MASS_ROD_TO_PIVOT * deltaTime
 
         # update pivot based on thrust
         self.pivot.vel += v2_right() * pivotThrust * deltaTime
