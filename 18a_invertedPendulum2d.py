@@ -32,5 +32,5 @@ def onReset():
 ####################################################################################################
 ############################## DO NOT MODIFY METHODS BELOW THIS LINE ###############################
 ####################################################################################################
-window = WindowSimInvPend("Lab 18b: Inverted Pendulum", "Goal: Control the pivot's linear thrust to keep the rod balanced.", calcPivotThrust=calcPivotThrust, onReset=onReset)
+window = WindowSimInvPend("Lab 18a: Inverted Pendulum", "Goal: Control the pivot's linear thrust to keep the rod balanced.", calcPivotThrust=calcPivotThrust, onReset=onReset)
 window.runGameLoop()

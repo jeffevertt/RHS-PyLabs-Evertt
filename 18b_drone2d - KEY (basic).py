@@ -5,12 +5,7 @@ from lib.winobj_drone2d import Drone2D
 from lib.winobj_wall import Wall
 
 ############## IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB ############
-########## This function computes the desired thrust (angle & magnitude) ########
-##########       the drone itself limits the max magnitude & angle       ########
-##########     the angle is in the drone's local space, where zero is    ########
-##########    directly up, a positive value pivots the thrust to accel   ########
-##########                 the drone up and to the left                  ########
-######### The drone should move towards the cursor position & hover there #######
+######### ... ########
 #################################################################################
 def calcDroneThrust(drone:Drone2D, targetPos:v2, deltaTime):
     # setup
@@ -18,7 +13,18 @@ def calcDroneThrust(drone:Drone2D, targetPos:v2, deltaTime):
     thrustAngle = 0                 # local space, 0 indicates directly upwards (positive counter clockwise)
     thrustMag = 0                   # force vector mag
     
-    # TODO
+    # error Vector (target - current)
+    errorVec:v2 = targetPos - drone.pos
+    errorVec = min(length(errorVec), 5.0) * unit(errorVec)  # clamp it
+    
+    # proportional Gain (Kp) - determines 'stiffness'
+    Kp = 8.0 
+    
+    # force proportional to the distance from target
+    thrustMag = max(dot(errorVec, drone.up()), 0.0) * Kp
+    
+    # thrust Angle
+    thrustAngle = atan2Deg(errorVec[1], errorVec[0]) - 90
     
     return (thrustAngle, thrustMag)
 
@@ -29,7 +35,7 @@ def calcDroneThrust(drone:Drone2D, targetPos:v2, deltaTime):
 def onDoubleClick(window:Window): # reset
     drone = window.sim.objectsOfType(Drone2D)
     drone[0].pos, drone[0].angle, drone[0].vel, drone[0].angVel = v2_zero(), 0.0, v2_zero(), 0.0
-window = Window("Lab 18a: Drone 2D", subTitle = "Goal: Control the drone's thrust vector to reach the target (the mouse position)", clickDoubleFn = onDoubleClick)
+window = Window("Lab 18b: Drone 2D", subTitle = "Goal: Control the drone's thrust vector to reach the target (the mouse position)", clickDoubleFn = onDoubleClick)
 ground = Wall(window, v2(0,-8), v2(0,1))
 drone = Drone2D(window, v2(0,0), ground = ground, calcThrustFn = calcDroneThrust)
 window.runGameLoop()
