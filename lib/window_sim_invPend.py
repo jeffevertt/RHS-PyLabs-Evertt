@@ -4,6 +4,7 @@ from lib.winobj_link import *
 from lib.utils import *
 from lib.winobj_obb import OBB
 from lib.winobj_wall import Wall
+from collections import deque
 
 class WindowSimInvPend(Window):
     # consts
@@ -16,12 +17,16 @@ class WindowSimInvPend(Window):
     PIVOT_MIN_MAX_X = v2(-20,20)
     MASS_ROD_TO_PIVOT = 0.5
     KEYBOARD_THRUST = 100
+    MAX_THRUST = 250
     
-    def __init__(self, title, subTitle, clickDoubleFn = None, calcPivotThrust = None, onReset = None):
+    def __init__(self, title, subTitle, clickDoubleFn = None, calcPivotThrust = None, onReset = None, inputLatencyInFrames = 8, sensorNoisePerc = 0.005):
         super().__init__(title, subTitle = subTitle, gridPixelsPerUnit = 24, clickDoubleFn = clickDoubleFn)
         
         self.calcPivotThrust = calcPivotThrust
         self.onReset = onReset
+        self.inputLatencyInFrames = inputLatencyInFrames
+        self.inputQueue = deque()
+        self.sensorNoisePerc = sensorNoisePerc
         self.ground = None
         self.pivot = None
         self.rod = None
@@ -64,6 +69,11 @@ class WindowSimInvPend(Window):
         rodAngle = randRange(WindowSimInvPend.ROD_INIT_ANGLE_MIN_MAX[0], WindowSimInvPend.ROD_INIT_ANGLE_MIN_MAX[1])
         self.rod.pos, self.rod.angle, self.rod.vel, self.rod.angVel = v2(0,WindowSimInvPend.GROUND_HEIGHT) + rotateVec2(v2_right(), rodAngle) * WindowSimInvPend.ROD_HALFDIMS[0], rodAngle, v2_zero(), 0.0
         
+        # input latency (reset)
+        self.inputQueue = deque()
+        for i in range(self.inputLatencyInFrames):
+            self.inputQueue.append(0)
+        
         # callback
         if self.onReset is not None:
             self.onReset()
@@ -75,7 +85,8 @@ class WindowSimInvPend(Window):
         # user update
         pivotThrust = 0
         if self.calcPivotThrust is not None:
-            pivotThrust = self.calcPivotThrust(self.pivot.pos.copy(), self.rod.angle, deltaTime)
+            angleSensor = self.rod.angle * randRange(1.0 - self.sensorNoisePerc, 1.0 + self.sensorNoisePerc)
+            pivotThrust = self.calcPivotThrust(self.pivot.pos.copy(), angleSensor, deltaTime)
             
         # user keyboard input
         keyboardThrust = WindowSimInvPend.KEYBOARD_THRUST * (0.25 if self.isKeyPressed("Shift_L") or self.isKeyPressed("Shift_R") else 1)
@@ -83,6 +94,13 @@ class WindowSimInvPend(Window):
             pivotThrust -= keyboardThrust
         if self.isKeyPressed("Right") and self.pivot.pos[0] + 0.01 < WindowSimInvPend.PIVOT_MIN_MAX_X[1]:
             pivotThrust += keyboardThrust
+            
+        # input latency
+        self.inputQueue.append(pivotThrust)
+        pivotThrust = self.inputQueue.popleft()
+        
+        # limit thrust to a max
+        pivotThrust = clamp(pivotThrust, -WindowSimInvPend.MAX_THRUST, WindowSimInvPend.MAX_THRUST)
             
         # update the rod's angVel on pivot position & gravity
         rodAngAccel = (self.gravity[1] * (180 / math.pi) * cosDeg(self.rod.angle) + pivotThrust * sinDeg(self.rod.angle)) / WindowSimInvPend.ROD_HALFDIMS[0]

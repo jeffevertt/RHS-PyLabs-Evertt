@@ -21,7 +21,7 @@ def calcPivotThrust(pivotPos:v2, rodAngle, deltaTime):
     
     # setup
     sim: Simulation = window.sim
-    
+
     # TODO: implement the controller
     
     return 0
