@@ -16,6 +16,8 @@ class WindowSimInvPend(Window):
     PIVOT_HALFDIMS = v2(1, 0.5)
     PIVOT_MIN_MAX_X = v2(-20,20)
     MASS_ROD_TO_PIVOT = 0.5
+    SIMULATION_TIME_SCALAR = 2.0
+    THRUST_ANGULAR_ACCEL_SCALAR = 2.0
     KEYBOARD_THRUST = 100
     MAX_THRUST = 250
     
@@ -41,7 +43,7 @@ class WindowSimInvPend(Window):
         super().update(deltaTime)
         
         # level update
-        self.updateLevel(deltaTime)
+        self.updateLevel(deltaTime * WindowSimInvPend.SIMULATION_TIME_SCALAR)
             
     def onMouseLeftPressed(self, event):
         super().onMouseLeftPressed(event)
@@ -103,7 +105,7 @@ class WindowSimInvPend(Window):
         pivotThrust = clamp(pivotThrust, -WindowSimInvPend.MAX_THRUST, WindowSimInvPend.MAX_THRUST)
             
         # update the rod's angVel on pivot position & gravity
-        rodAngAccel = (self.gravity[1] * (180 / math.pi) * cosDeg(self.rod.angle) + pivotThrust * sinDeg(self.rod.angle)) / WindowSimInvPend.ROD_HALFDIMS[0]
+        rodAngAccel = (self.gravity[1] * (180 / math.pi) * cosDeg(self.rod.angle) + pivotThrust * sinDeg(self.rod.angle) * WindowSimInvPend.THRUST_ANGULAR_ACCEL_SCALAR) / WindowSimInvPend.ROD_HALFDIMS[0]
         
         # update the rod's angle based on the angAccel
         self.rod.angVel += rodAngAccel * deltaTime
