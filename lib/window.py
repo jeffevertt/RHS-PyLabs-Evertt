@@ -10,7 +10,7 @@ import aiohttp
 import json
 
 class Window:
-    def __init__(self, title, width = 1024, height = 600, subTitle = "", gridEnable = True, clickReleaseFn = None, gridPixelsPerUnit = 24, gridOriginAtLL = False, canvasColor = '#F4EAD7', bckGndImage = None, clickDoubleFn = None):
+    def __init__(self, title, width = 1024, height = 600, subTitle = "", gridEnable = True, clickReleaseFn = None, gridPixelsPerUnit = 24, mouseWheelZooms = False, gridOriginAtLL = False, canvasColor = '#F4EAD7', bckGndImage = None, clickDoubleFn = None):
         # consts
         self.gridPixelsPerUnit = gridPixelsPerUnit
         
@@ -18,6 +18,7 @@ class Window:
         self.width = width
         self.height = height
         self.gridOriginPixels = [int(self.width / 2), int(self.height / 2)] if not gridOriginAtLL else [0, self.height]
+        self.mouseWheelZooms = mouseWheelZooms
         self.subTitle = subTitle
         self.gridEnable = gridEnable
         self.timeLastUpdate = time.time()
@@ -49,6 +50,7 @@ class Window:
         # mouse support
         self.isMouseLeftDown = False
         self.isMouseRightDown = False
+        self.isMouseWheelDown = False
         self.lastMousePos = None
         self.mouseLeftVelHist = []
         self.clickReleaseFn = clickReleaseFn
@@ -58,6 +60,9 @@ class Window:
         self.canvas.bind("<Double-Button-1>", self.onMouseLeftDoubleClick)
         self.canvas.bind("<Button-3>", self.onMouseRightPressed)
         self.canvas.bind("<ButtonRelease-3>", self.onMouseRightReleased)
+        self.canvas.bind("<Button-2>", self.onMouseWheelPressed)
+        self.canvas.bind("<ButtonRelease-2>", self.onMouseWheelReleased)
+        self.canvas.bind("<MouseWheel>", self.onMouseWheel)
         self.canvas.bind("<Motion>", self.onMouseMotion)
         
         # keyboard support
@@ -166,8 +171,30 @@ class Window:
         self.isMouseRightDown = True
     def onMouseRightReleased(self, event):
         self.isMouseRightDown = False
+    def onMouseWheelPressed(self, event):
+        self.isMouseWheelDown = True
+    def onMouseWheelReleased(self, event):
+        self.isMouseWheelDown = False
+    def onMouseWheel(self, event):
+        if self.mouseWheelZooms is True:
+            zoom_factor = 1.1 # zoom sensitivity
+            if event.num == 5 or event.delta < 0:
+                zoom_factor = 1 / zoom_factor  # Zoom out
+            dx = event.x - self.gridOriginPixels[0]
+            dy = event.y - self.gridOriginPixels[1]
+            self.gridPixelsPerUnit *= zoom_factor
+            self.gridOriginPixels[0] = event.x - (dx * zoom_factor)
+            self.gridOriginPixels[1] = event.y - (dy * zoom_factor)
+            self.createGrid()
     def onMouseMotion(self, event):
         mousePos = self.toCoordFrame(v2(event.x, event.y))
+        if self.mouseWheelZooms is True and self.isMouseWheelDown:
+            dx = self.toPixelsX(mousePos[0]) - self.toPixelsX(self.lastMousePos[0][0])
+            dy = self.toPixelsY(mousePos[1]) - self.toPixelsY(self.lastMousePos[0][1])
+            self.gridOriginPixels[0] += dx
+            self.gridOriginPixels[1] += dy
+            mousePos = self.toCoordFrame(v2(event.x, event.y))
+            self.createGrid()
         if self.lastMousePos != None:
             vel = ((mousePos - self.lastMousePos[0]) / max(time.time() - self.lastMousePos[1], 0.01))
             if len(self.mouseLeftVelHist) > 8:
@@ -223,25 +250,32 @@ class Window:
     
     # draw helpers
     def createGrid(self):
+        self.destroyGrid()
         x = self.gridOriginPixels[0] + self.gridPixelsPerUnit
         lineColor = 'lightgray'
         while x < self.width:
             self.gfxGridLines.append( self.canvas.create_line(x, 0, x, self.height, fill = lineColor, width = 1) )
+            self.canvas.tag_lower(self.gfxGridLines[-1])
             x += self.gridPixelsPerUnit
         x = self.gridOriginPixels[0] - self.gridPixelsPerUnit
         while x > 0:
             self.gfxGridLines.append( self.canvas.create_line(x, 0, x, self.height, fill = lineColor, width = 1) )
+            if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
             x -= self.gridPixelsPerUnit
         y = self.gridOriginPixels[1] + self.gridPixelsPerUnit
         while y < self.height:
             self.gfxGridLines.append( self.canvas.create_line(0, y, self.width, y, fill = lineColor, width = 1) )
+            if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
             y += self.gridPixelsPerUnit
         y = self.gridOriginPixels[1] - self.gridPixelsPerUnit
         while y > 0:
             self.gfxGridLines.append( self.canvas.create_line(0, y, self.width, y, fill = lineColor, width = 1) )
+            if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
             y -= self.gridPixelsPerUnit
         self.gfxGridLines.append( self.canvas.create_line(self.gridOriginPixels[0], 0, self.gridOriginPixels[0], self.height, fill = 'darkgray', width = 3) )
+        if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
         self.gfxGridLines.append( self.canvas.create_line(0, self.gridOriginPixels[1], self.width, self.gridOriginPixels[1], fill = 'darkgray', width = 3) )
+        if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
     def destroyGrid(self):
         for gridLine in self.gfxGridLines:
             self.canvas.delete(gridLine)

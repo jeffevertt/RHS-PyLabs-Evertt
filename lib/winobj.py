@@ -15,7 +15,7 @@ class WinObj:
         
     def shouldBeCulled(self):
         return self.isOutOfBounds()
-    def isOutOfBounds(self, minDst = 20):
+    def isOutOfBounds(self, minDst = 40):
         return self.pos[0] + minDst < self.window.minCoordinateX() or self.pos[0] - minDst > self.window.maxCoordinateX() or self.pos[1] + minDst < self.window.minCoordinateY() or self.pos[1] - minDst > self.window.maxCoordinateY()
     
     def updateGfx(self):

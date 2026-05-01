@@ -26,6 +26,6 @@ def clickReleaseFn(pos, vel):
     vel = limitMag(vel, 75)
     Circle(window, pos, 0.5, vel = vel, color = "gray", updateFn = updateMeteoroidFunction)
 
-window = Window("Lab 08b: Orbital Mechanics", subTitle = "Click, drag, and launch an meteoroid into space...", gridPixelsPerUnit = 8, clickReleaseFn = clickReleaseFn)
-sun = Circle(window, v2(0,0), 5, text = "sun", textColor = "black", color = "yellow")
+window = Window("Lab 08b: Orbital Mechanics", subTitle = "Click, drag, and launch an meteoroid into space...", gridPixelsPerUnit = 8, mouseWheelZooms = True, clickReleaseFn = clickReleaseFn)
+sun = Circle(window, v2(0,0), 5, neverCull = True, text = "sun", textColor = "black", color = "yellow")
 window.runGameLoop()
