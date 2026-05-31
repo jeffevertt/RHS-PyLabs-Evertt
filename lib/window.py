@@ -44,8 +44,10 @@ class Window:
             img = Image.open(bckGndImage)
             img = img.resize( (self.width, self.height) )
             self.bckGndPhoto = ImageTk.PhotoImage(img)
-            self.canvas.create_image(0, 0, image=self.bckGndPhoto, anchor="nw")
+            self.bckGndImageId = self.canvas.create_image(0, 0, image=self.bckGndPhoto, anchor="nw")
             self.canvas.pack(fill="both", expand=True)
+        else:
+            self.bckGndImageId = None
         
         # mouse support
         self.isMouseLeftDown = False
@@ -276,6 +278,8 @@ class Window:
         if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
         self.gfxGridLines.append( self.canvas.create_line(0, self.gridOriginPixels[1], self.width, self.gridOriginPixels[1], fill = 'darkgray', width = 3) )
         if self.mouseWheelZooms: self.canvas.tag_lower(self.gfxGridLines[-1])
+        if self.bckGndImageId is not None:
+            self.canvas.tag_lower(self.bckGndImageId)
     def destroyGrid(self):
         for gridLine in self.gfxGridLines:
             self.canvas.delete(gridLine)
