@@ -7,7 +7,7 @@ from lib.utils import *
 import random
 
 class WindowPong(Window):
-    def __init__(self, updateBallFn = None, onCreateWorld = None, onCreateWorldPre = None, canvasColor='#F4EAD7', bckGndImage = None):
+    def __init__(self, updateBallFn = None, onCreateWorld = None, onCreateWorldPre = None, canvasColor='#F4EAD7', bckGndImage = None, maxActiveBalls = 16):
         super().__init__("Lab 09: Pong!", gridPixelsPerUnit = 24, canvasColor=canvasColor, bckGndImage=bckGndImage)
         
         self.walls = [None, None]
@@ -21,6 +21,7 @@ class WindowPong(Window):
         self.userCode = updateBallFn
         self.createWorldPre = onCreateWorldPre
         self.createWorld = onCreateWorld
+        self.maxActiveBalls = maxActiveBalls
         
     def initApp(self):
         super().initApp()
@@ -95,17 +96,23 @@ class WindowPong(Window):
     def updatePaddleLeft(self, paddle, deltaTime):
         maxPos = self.maxCoordinateY() - self.wallThickness - paddle.height / 2
         minPos = self.minCoordinateY() + self.wallThickness + paddle.height / 2
+        paddle.vel[1] = 0
         if self.isKeyPressed('a') and paddle.pos[1] < maxPos:
+            paddle.vel[1] = self.paddleSpeed
             paddle.pos[1] = min(paddle.pos[1] + self.paddleSpeed * deltaTime, maxPos)
         if self.isKeyPressed('z') and paddle.pos[1] > minPos:
+            paddle.vel[1] = -self.paddleSpeed
             paddle.pos[1] = max(paddle.pos[1] - self.paddleSpeed * deltaTime, minPos)
             
     def updatePaddleRight(self, paddle, deltaTime):
         maxPos = self.maxCoordinateY() - self.wallThickness - paddle.height / 2
         minPos = self.minCoordinateY() + self.wallThickness + paddle.height / 2
+        paddle.vel[1] = 0
         if self.isKeyPressed('Up') and paddle.pos[1] < maxPos:
+            paddle.vel[1] = self.paddleSpeed
             paddle.pos[1] = min(paddle.pos[1] + self.paddleSpeed * deltaTime, maxPos)
         if self.isKeyPressed('Down') and paddle.pos[1] > minPos:
+            paddle.vel[1] = -self.paddleSpeed
             paddle.pos[1] = max(paddle.pos[1] - self.paddleSpeed * deltaTime, minPos)
         
     def onLevelSetup(self):
@@ -125,6 +132,8 @@ class WindowPong(Window):
         paddleDims = v2(0.5, 4)
         self.paddles[0] = Rectangle(self, v2(self.minCoordinateX() + paddleDims[0] * 2, 0), paddleDims[0], paddleDims[1], color = "blue", updateFn = self.updatePaddleLeft)
         self.paddles[1] = Rectangle(self, v2(self.maxCoordinateX() - paddleDims[0] * 2, 0), paddleDims[0], paddleDims[1], color = "green", updateFn = self.updatePaddleRight)
+        self.paddles[0].vel = v2(0, 0)
+        self.paddles[1].vel = v2(0, 0)
         
         # create the ball
         self.ball = Circle(self, v2(self.maxCoordinateX() - 3, 0), self.ballRadius, v2(-12, 0), color = "red")
@@ -195,3 +204,8 @@ class WindowPong(Window):
                 self.timeSinceBall = 0
         else:
             self.timeSinceBall = 0
+        
+        # if there are too many balls, remove the oldest one(s)
+        balls = self.sim.objectsOfType(Circle)
+        for i in range(len(balls) - self.maxActiveBalls):
+            balls[len(balls) - i - 1].destroy()

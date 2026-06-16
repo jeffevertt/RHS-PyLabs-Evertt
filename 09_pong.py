@@ -5,10 +5,10 @@ from lib.winobj_circle import *
 def updateBall(ball, deltaTime):
     #TODO: Update the ball based on its velocity (ball.vel)
     pass
-def collideBallWall(ball, wallPoint, wallNormal):
+def collideBallWall(ball, wall):
     #TODO: Check for & respond to collision with ball & wall
     pass
-def collideBallPaddle(ball, paddleCenter, paddleWidth, paddleHeight):
+def collideBallPaddle(ball, paddle):
     #TODO: Check for & respond to collision with ball & paddle
     pass
 
@@ -20,7 +20,7 @@ def collideBallPaddle(ball, paddleCenter, paddleWidth, paddleHeight):
 def updateFn(deltaTime, ball, walls, paddles):
     updateBall(ball, deltaTime)
     for wall in walls:
-        collideBallWall(ball, wall.pos, wall.normal)
+        collideBallWall(ball, wall)
     for paddle in paddles:
-        collideBallPaddle(ball, paddle.pos, paddle.width, paddle.height)
+        collideBallPaddle(ball, paddle)
 WindowPong(updateBallFn = updateFn).runGameLoop()
