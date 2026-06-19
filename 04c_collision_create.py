@@ -25,7 +25,7 @@ def updateBallFunction(circle :Circle, deltaTime):
 ####################################################################################################
 def clickReleaseFn(pos, vel):
     vel = limitMag(vel, 30)
-    circle = Circle(window, pos, 2.0, vel = vel, color = "steelblue", updateFn = updateBallFunction)
+    circle = Circle(window, pos, 2.0, vel = vel, updateFn = updateBallFunction)
     circle.dynamic = True
     
 window = Window("Lab 4c: Collision Create", subTitle = "Goal: Create a fun physics lab...", clickReleaseFn = clickReleaseFn)

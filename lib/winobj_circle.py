@@ -2,12 +2,12 @@ from lib.winobj import WinObj
 from lib.utils import *
 
 class Circle(WinObj):
-    def __init__(self, window, pos, radius, vel = v2(0,0), neverCull = False, text = "", textColor = "white", color = "red", updateFn = None):
+    def __init__(self, window, pos, radius, vel = v2(0,0), neverCull = False, text = "", textColor = "white", color = None, updateFn = None):
         super().__init__(window, pos, vel)
         self.radius = radius
         self.text = text
         self.textColor = textColor
-        self.color = color
+        self.color = color if color is not None else nextBallColor()
         self.neverCull = neverCull
         self.window.sim.onCreated(self)
         self.updateFn = updateFn

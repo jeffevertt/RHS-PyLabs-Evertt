@@ -20,7 +20,7 @@ def updateCircleFunction(circle :Circle, deltaTime):
 ############################## DO NOT MODIFY  METHODS BELOW THIS LINE ##############################
 ####################################################################################################
 def clickReleaseFn(pos, vel):
-    Circle(window, pos, 0.5, vel = v2(0,0), text = "A", color = "steelblue", updateFn = updateCircleFunction)
+    Circle(window, pos, 0.5, vel = v2(0,0), updateFn = updateCircleFunction)
     
 window = Window("Lab 02c: Projectile v Ground", subTitle = "Stop the ball when it hits the ground...", clickReleaseFn = clickReleaseFn)
 ground = Wall(window, v2(0,-8), v2(0,1))

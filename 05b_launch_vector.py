@@ -36,7 +36,7 @@ def clickReleaseFn(pos, vel):
     velX = 10.0
     angDeg = calcLaunchAngle(pos, target.pos, velX)
     vel = v2(velX, tanDeg(angDeg) * velX)
-    Circle(window, pos, 0.5, vel, color = "steelblue", updateFn = updateBallFunction)
+    Circle(window, pos, 0.5, vel, updateFn = updateBallFunction)
 def createRandomTarget():
     global target
     if target is not None:

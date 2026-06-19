@@ -239,6 +239,13 @@ def isInsideField(window, pt, buffer = 0):
         return False
     return True
 
+nextBallColors = [ "steelblue", "#C46210", "#138B7D", "#241F75", "#88B378", "olivedrab", "#959C64", "#B38B6D", "#D299D7", "#3B2F2F", "#4CACB3" ]
+nextBallColorIdx = -1
+def nextBallColor():
+    global nextBallColors, nextBallColorIdx
+    nextBallColorIdx += 1
+    return nextBallColors[nextBallColorIdx % len(nextBallColors) ]
+
 def calcOBBCorners(winObjOBB):
     ul = rotateVec2(v2(-winObjOBB.width/2, winObjOBB.height/2), winObjOBB.angle) + winObjOBB.pos
     ur = rotateVec2(v2( winObjOBB.width/2, winObjOBB.height/2), winObjOBB.angle) + winObjOBB.pos

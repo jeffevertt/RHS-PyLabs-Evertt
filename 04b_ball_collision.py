@@ -18,7 +18,7 @@ def updateFunction(circle :Circle, deltaTime):
 ####################################################################################################
 def clickReleaseFn(pos, vel):
     vel = limitMag(vel, 30)
-    Circle(window, pos, 2.0, vel = vel, color = "steelblue", updateFn = updateFunction)
+    Circle(window, pos, 2.0, vel = vel, updateFn = updateFunction)
 def updateBallFunction(ball, deltaTime):
     #ball.vel += window.gravity * deltaTime
     ball.pos += ball.vel * deltaTime

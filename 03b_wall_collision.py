@@ -18,7 +18,7 @@ def updateCircleFunction(circle :Circle, deltaTime):
 ####################################################################################################
 def clickReleaseFn(pos, vel):
     vel = limitMag(vel, 50)
-    Circle(window, pos, 0.5, vel = vel, text = "A", color = "steelblue", updateFn = updateCircleFunction)
+    Circle(window, pos, 0.5, vel = vel, updateFn = updateCircleFunction)
     
 window = Window("Lab 03b: Wall Collision", subTitle = "Goal: Bounce the ball off both walls...", clickReleaseFn = clickReleaseFn)
 wallA = Wall(window, v2( 8,0), v2(-1,1))
