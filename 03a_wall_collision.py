@@ -8,7 +8,7 @@ from lib.winobj_wall import Wall
 #   Wall properties...
 #       wall.pos        point on the wall
 #       wall.normal     vector facing away from the wall (perpendicular to the wall)
-def updateCircleFunction(circle, deltaTime):
+def updateCircleFunction(circle :Circle, deltaTime):
     # TODO...use circle.pos and circle.vel (both 2d vectors)
     pass
 

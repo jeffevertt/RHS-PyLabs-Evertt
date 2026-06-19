@@ -5,11 +5,11 @@ from lib.winobj_wall import Wall
 from lib.winobj_circle import Circle
 
 ############# IT IS YOUR JOB TO IMPLEMENT THESE FUNCTION IN THIS LAB #############
-def createWorld(window):
+def createWorld(window :Window):
     # create up your world objects, get creative...
     pass
     
-def updateBallFunction(circle, deltaTime):
+def updateBallFunction(circle :Circle, deltaTime):
     # setup (get all the objects in the scene)
     sim: Simulation = window.sim
     walls = sim.objectsOfType(Wall)

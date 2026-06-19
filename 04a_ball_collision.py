@@ -7,7 +7,7 @@ from lib.winobj_circle import Circle
 ## Access the moving ball, circle, using circle.pos, circle.vel, circle.radius ##
 ####### ball that's stuck in one place is ball (use ball.pos & ball.radius) #####
 #################################################################################
-def updateFunction(circle, deltaTime):
+def updateFunction(circle :Circle, deltaTime):
     # TODO...use circle.pos and circle.vel (both 2d vectors)
     pass
 

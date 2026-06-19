@@ -9,7 +9,7 @@ from lib.winobj_circle import Circle
 # to see what I mean. Then figure out how to update "circle.pos" to apply the velocity
 # to the position at each update timeslice. 
 #   Then, apply some gravity (gravity at earths surface is -9.8 m/s^2)
-def updateCircleFunction(circle, deltaTime):
+def updateCircleFunction(circle :Circle, deltaTime):
     # TODO...use circle.pos and circle.vel (both 2d vectors)
     pass
 

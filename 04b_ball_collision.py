@@ -4,7 +4,7 @@ from lib.winobj_circle import Circle
 
 ############# IT IS YOUR JOB TO IMPLEMENT THIS FUNCTION IN THIS LAB #############
 # The circle should collide with the other balls and reflect/bounce off of them #
-def updateFunction(circle, deltaTime):
+def updateFunction(circle :Circle, deltaTime):
     # TODO...use circle.pos and circle.vel (both 2d vectors)
     
     # collide with each ball (both balls should get an updated velocity)
