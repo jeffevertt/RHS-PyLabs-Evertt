@@ -2,13 +2,14 @@ from lib.winobj import WinObj
 from lib.utils import *
 
 class Line(WinObj):
-    def __init__(self, window, posA, posB, color = "blue", width = 4):
+    def __init__(self, window, posA, posB, color = "blue", width = 4, inWorldSpace = False):
         self.posA = posA
         self.posB = posB
         posCenter = (posA + posB) / 2
         super().__init__(window, posCenter)
         self.color = color
         self.width = width
+        self.inWorldSpace = inWorldSpace
         self.window.sim.onCreated(self)
         self.createGfx()
             

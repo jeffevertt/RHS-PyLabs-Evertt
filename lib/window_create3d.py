@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import List
 from lib.window import Window
 from lib.window_3d import Window3D
 from lib.winobj_sphere import Sphere
@@ -26,8 +27,8 @@ class WindowCreate3D(Window3D):
         if self.setupLevelFn != None:
             self.setupLevelFn(self.addLine, self.addTri)
         
-    def addLine(self, ptA, ptB, color = "darkblue"):
-        self.worldLines.append( (ptA, ptB, Line( self, ptA, ptB, color )) )
+    def addLine(self, ptA, ptB, color = "darkblue", width = 4, inWorldSpace = False):
+        self.worldLines.append( (ptA, ptB, Line( self, ptA, ptB, color, width, inWorldSpace )) )
         self.updateWorldGeo()
         
     def addTri(self, ptA, ptB, ptC, color = "darkgreen"):
@@ -37,10 +38,11 @@ class WindowCreate3D(Window3D):
     def updateWorldGeo(self):
         for worldLine in self.worldLines:
             ptA, ptB, line = worldLine[0], worldLine[1], worldLine[2]
-            line.updateLinePositions( *self.transformAndClipLine(ptA, ptB, self.modelToWorld) )
+            line.updateLinePositions( *self.transformAndClipLine(ptA, ptB, self.modelToWorld if not line.inWorldSpace else m4x4Identity()) )
         for worldTri in self.worldTris:
             ptA, ptB, ptC, tri = worldTri[0], worldTri[1], worldTri[2], worldTri[3]
-            tri.updateTriPositions( ptA, ptB, ptC ) # tri3d's positions are world space (they don't support a model transform, at least for now)
+            ptA, ptB, ptC = self.modelToWorld @ v4(ptA), self.modelToWorld @ v4(ptB), self.modelToWorld @ v4(ptC)
+            tri.updateTriPositions( ptA, ptB, ptC ) # tri3d's positions are world space (model to world is applied above)
             
     def update(self, deltaTime):
         super().update(deltaTime)

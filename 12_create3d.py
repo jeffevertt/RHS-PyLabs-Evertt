@@ -8,10 +8,14 @@ from lib.window_create3d import *
 # challenge 4: Create a sphere
 # challenge 5: Create your own scene
 
+# full interface for addLine and addTri...
+# addLine(self, ptA, ptB, color = "darkblue", width = 4, inWorldSpace = False)
+# addTri(self, ptA, ptB, ptC, color = "darkgreen")
+
 # setup level (called once when the level is created)
 def setupLevel(addLine, addTri):
     #TODO: add your code here
-    addLine( v3(-10,0,0), v3(10,0,0) ) # example (how to add a line)
+    addLine( v3(-10,0,0), v3(10,0,0) ) # example (how to add a line).
 
 # update world (called repeatedly)
 def updateLevel(deltaTime, modelToWorld):
